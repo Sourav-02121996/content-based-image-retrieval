@@ -1,0 +1,9 @@
+.DS_Store
+cbir
+
+# Datasets and embeddings
+data/olympus/
+features/embeddings.csv
+
+# Reference materials
+CS 5330 Spring 2026 Ch8.pdf

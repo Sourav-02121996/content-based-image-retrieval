@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 5330 - Project 2: Content-based Image Retrieval Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 0.75in;
+            background: white;
+            color: #333;
+        }
+        h1 {
+            font-size: 18pt;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #000;
+        }
+        h2 {
+            font-size: 14pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #000;
+            border-bottom: 1px solid #333;
+            padding-bottom: 3px;
+        }
+        h3 {
+            font-size: 12pt;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            color: #000;
+        }
+        .header-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header-info p {
+            margin: 2px 0;
+        }
+        p {
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+        .image-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+        .image-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        .image-row img {
+            max-width: 45%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+        .image-row-3 img {
+            max-width: 30%;
+        }
+        .caption {
+            font-style: italic;
+            font-size: 10pt;
+            color: #666;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10pt;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            overflow-x: auto;
+            font-size: 9pt;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        ul {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        @media print {
+            body {
+                padding: 0;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+        }
+        .placeholder {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>CS 5330 - Pattern Recognition and Computer Vision</h1>
+    <h1 style="font-size: 16pt;">Project 2: Content-based Image Retrieval Report</h1>
+
+    <div class="header-info">
+        <p><strong>Name:</strong> Joseph Defendre, Sourav Das</p>
+        <p><strong>Date:</strong> January 2026</p>
+        <p><strong>Course:</strong> CS 5330 Pattern Recognition and Computer Vision</p>
+    </div>
+
+    <hr>
+
+    <h2>1. Project Description (≤200 words)</h2>
+    <p>
+        This project implements a content-based image retrieval (CBIR) system that
+        matches a query image to a database by comparing visual features. The system
+        supports baseline patch matching, color histograms, multi-region histograms,
+        texture histograms (Sobel magnitude), deep network embeddings, and a custom
+        feature configuration for a chosen category. Each method produces a feature
+        vector for the target and database images, computes a distance metric, and
+        returns the top-N closest matches.
+    </p>
+
+    <h2>2. Required Results</h2>
+
+    <h3>Task 1 — Baseline Matching</h3>
+    <ul>
+        <li>Query: pic.1016.jpg</li>
+        <li class="placeholder">Top matches: [add images here]</li>
+    </ul>
+
+    <h3>Task 2 — Histogram Matching</h3>
+    <ul>
+        <li>Query: pic.0164.jpg</li>
+        <li class="placeholder">Top matches: [add images here]</li>
+    </ul>
+
+    <h3>Task 3 — Multi-histogram Matching</h3>
+    <ul>
+        <li>Query: pic.0274.jpg</li>
+        <li class="placeholder">Top matches: [add images here]</li>
+    </ul>
+
+    <h3>Task 4 — Texture + Color</h3>
+    <ul>
+        <li>Query: pic.0535.jpg</li>
+        <li class="placeholder">Top matches: [add images here]</li>
+        <li class="placeholder">Comparison vs Task 2/3: [add notes here]</li>
+    </ul>
+
+    <h3>Task 5 — Deep Network Embeddings</h3>
+    <ul>
+        <li>Query: pic.0893.jpg</li>
+        <li class="placeholder">Top matches: [add images here]</li>
+        <li>Query: pic.0164.jpg</li>
+        <li class="placeholder">Top matches: [add images here]</li>
+        <li class="placeholder">Comparison vs classic features: [add notes here]</li>
+    </ul>
+
+    <h3>Task 6 — Classic vs DNN Comparison</h3>
+    <ul>
+        <li>Queries: pic.1072.jpg, pic.0948.jpg, pic.0734.jpg</li>
+        <li class="placeholder">Summary: [add analysis here]</li>
+    </ul>
+
+    <h3>Task 7 — Custom Design (Sunset-Oriented Feature)</h3>
+    <ul>
+        <li class="placeholder">Queries: [add two target images here]</li>
+        <li class="placeholder">Top 5 matches: [add images here]</li>
+        <li class="placeholder">Least similar results: [add images here]</li>
+    </ul>
+
+    <h2>3. Extensions</h2>
+    <p>None.</p>
+
+    <h2>4. Reflection</h2>
+    <p class="placeholder">[Add reflection here.]</p>
+
+    <h2>5. Acknowledgments</h2>
+    <p>Sourav Das, Joseph Defendre. Course materials and OpenCV documentation.</p>
+</body>
+</html>
