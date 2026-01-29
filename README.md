@@ -22,7 +22,7 @@ make
 
 ## Run
 ```
-./cbir <target_image> <database_dir> <feature_type> <distance_metric> <N> [embeddings_csv]
+./cbir <target_image> <database_dir> <feature_type> <distance_metric> <N> [embeddings_csv] [--least]
 ```
 
 ### Feature Types
@@ -42,32 +42,37 @@ make
 ### Examples
 Baseline (Task 1):
 ```
-./cbir data/pic.1016.jpg data baseline ssd 4
+./cbir data/olympus/pic.1016.jpg data/olympus baseline ssd 4
 ```
 
 RG histogram (Task 2):
 ```
-./cbir data/pic.0164.jpg data histogram_rg histogram_intersection 4
+./cbir data/olympus/pic.0164.jpg data/olympus histogram_rg histogram_intersection 4
 ```
 
 Multi-histogram (Task 3):
 ```
-./cbir data/pic.0274.jpg data multi_histogram histogram_intersection 4
+./cbir data/olympus/pic.0274.jpg data/olympus multi_histogram histogram_intersection 4
 ```
 
 Texture + color (Task 4):
 ```
-./cbir data/pic.0535.jpg data texture_color histogram_intersection 4
+./cbir data/olympus/pic.0535.jpg data/olympus texture_color histogram_intersection 4
 ```
 
 Deep embeddings (Task 5):
 ```
-./cbir data/pic.0893.jpg data dnn cosine 4 features/embeddings.csv
+./cbir data/olympus/pic.0893.jpg data/olympus dnn cosine 4 features/embeddings.csv
 ```
 
 Custom sunset feature (Task 7):
 ```
-./cbir data/pic.0734.jpg data custom_sunset histogram_intersection 5
+./cbir data/olympus/pic.0734.jpg data/olympus custom_sunset histogram_intersection 5
+```
+
+Least-similar results (optional):
+```
+./cbir data/olympus/pic.0048.jpg data/olympus custom_sunset histogram_intersection 5 --least
 ```
 
 ## Testing
@@ -83,8 +88,43 @@ No extensions implemented yet. Optional: replace `custom_sunset` with a more
 specific category (bananas, trash bins) once the dataset is explored.
 
 ## Notes
-- The embeddings CSV should contain filenames as the first column.
+- The embeddings CSV (`features/embeddings.csv`) should contain filenames as the first column.
 - For DNN matching, the program looks up embeddings by basename.
+- Use `data/olympus/` as the database directory for all required queries.
+
+## Final Run/Testing Notes
+
+### Prerequisites
+1. **Database directory**: `data/olympus/` contains all dataset images.
+2. **Embeddings file**: `features/embeddings.csv` exists with filename + 512 values.
+
+### Verification Commands
+Task 1:
+```
+./cbir data/olympus/pic.1016.jpg data/olympus baseline ssd 4
+```
+Task 2:
+```
+./cbir data/olympus/pic.0164.jpg data/olympus histogram_rg histogram_intersection 4
+```
+Task 3:
+```
+./cbir data/olympus/pic.0274.jpg data/olympus multi_histogram histogram_intersection 4
+```
+Task 4:
+```
+./cbir data/olympus/pic.0535.jpg data/olympus texture_color histogram_intersection 4
+```
+Task 5:
+```
+./cbir data/olympus/pic.0893.jpg data/olympus dnn cosine 4 features/embeddings.csv
+./cbir data/olympus/pic.0164.jpg data/olympus dnn cosine 4 features/embeddings.csv
+```
+Task 7:
+```
+./cbir data/olympus/pic.0048.jpg data/olympus custom_sunset histogram_intersection 5
+./cbir data/olympus/pic.0048.jpg data/olympus custom_sunset histogram_intersection 5 --least
+```
 
 ## Time Travel Days
 None.

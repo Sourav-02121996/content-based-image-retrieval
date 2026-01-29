@@ -21,7 +21,7 @@ struct Match {
 void printUsage() {
     std::cout
         << "Usage:\n"
-        << "  ./cbir <target_image> <database_dir> <feature_type> <distance_metric> <N> [embeddings_csv]\n\n"
+        << "  ./cbir <target_image> <database_dir> <feature_type> <distance_metric> <N> [embeddings_csv] [--least]\n\n"
         << "Feature types:\n"
         << "  baseline\n"
         << "  histogram_rg\n"
@@ -36,9 +36,11 @@ void printUsage() {
         << "  cosine\n";
 }
 
-std::vector<Match> topMatches(std::vector<Match> matches, int topN) {
+std::vector<Match> topMatches(std::vector<Match> matches, int topN, bool descending) {
     std::sort(matches.begin(), matches.end(),
-              [](const Match &a, const Match &b) { return a.distance < b.distance; });
+              [descending](const Match &a, const Match &b) {
+                  return descending ? a.distance > b.distance : a.distance < b.distance;
+              });
     if (topN < static_cast<int>(matches.size())) {
         matches.resize(topN);
     }
@@ -58,6 +60,17 @@ int main(int argc, char **argv) {
         std::string featureType = argv[3];
         std::string distanceMetric = argv[4];
         int topN = std::stoi(argv[5]);
+        bool showLeast = false;
+        std::string embeddingsPath;
+
+        for (int i = 6; i < argc; ++i) {
+            std::string arg = argv[i];
+            if (arg == "--least") {
+                showLeast = true;
+            } else if (embeddingsPath.empty()) {
+                embeddingsPath = arg;
+            }
+        }
 
         auto imageFiles = listImageFiles(databaseDir);
         if (imageFiles.empty()) {
@@ -69,11 +82,10 @@ int main(int argc, char **argv) {
         matches.reserve(imageFiles.size());
 
         if (featureType == "dnn") {
-            if (argc < 7) {
+            if (embeddingsPath.empty()) {
                 std::cerr << "Missing embeddings CSV path for DNN features.\n";
                 return 1;
             }
-            std::string embeddingsPath = argv[6];
             auto embeddings = readEmbeddingsCsv(embeddingsPath);
             std::string targetKey = basenameFromPath(targetImagePath);
             auto targetIt = embeddings.find(targetKey);
@@ -173,7 +185,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        auto top = topMatches(matches, topN);
+        auto top = topMatches(matches, topN, showLeast);
         for (const auto &match : top) {
             std::cout << match.filename << " " << match.distance << "\n";
         }
