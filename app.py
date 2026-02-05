@@ -11,6 +11,7 @@ import streamlit as st
 PROJECT_ROOT = Path(__file__).resolve().parent
 CBIR_BINARY = PROJECT_ROOT / "cbir"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
+FOLDER_PLACEHOLDER = "Select a folder..."
 
 
 def resolve_path(path_text: str) -> Path:
@@ -21,6 +22,8 @@ def resolve_path(path_text: str) -> Path:
 
 
 def list_images(database_dir_text: str) -> list[Path]:
+    if not database_dir_text.strip():
+        return []
     database_dir = resolve_path(database_dir_text)
     if not database_dir.exists() or not database_dir.is_dir():
         return []
@@ -67,6 +70,34 @@ def get_default_database_dir() -> str:
     return "data/olympus"
 
 
+def list_database_dirs() -> list[Path]:
+    candidates: set[Path] = set()
+    data_root = PROJECT_ROOT / "data"
+    roots = [data_root] if data_root.is_dir() else []
+    olympus_root = PROJECT_ROOT / "olympus"
+    if olympus_root.is_dir():
+        roots.append(olympus_root)
+
+    for root in roots:
+        try:
+            for file_path in root.rglob("*"):
+                if (
+                    file_path.is_file()
+                    and file_path.suffix.lower() in IMAGE_EXTENSIONS
+                ):
+                    candidates.add(file_path.parent)
+        except Exception:
+            continue
+
+    return sorted(candidates)
+
+
+def sync_database_dir_from_choice() -> None:
+    choice = st.session_state.get("database_dir_choice")
+    if choice and choice != FOLDER_PLACEHOLDER:
+        st.session_state["database_dir"] = choice
+
+
 st.set_page_config(page_title="CBIR GUI", layout="wide")
 st.title("Content-based Image Retrieval GUI")
 st.caption("Run the existing ./cbir command from a visual interface.")
@@ -85,12 +116,34 @@ feature_options = [
     "custom_sunset",
 ]
 
-default_db_dir = get_default_database_dir()
-
 left_col, right_col = st.columns([2, 1])
 
 with left_col:
-    database_dir_text = st.text_input("Database directory", value=default_db_dir)
+    if "database_dir" not in st.session_state:
+        st.session_state["database_dir"] = ""
+
+    available_dirs = list_database_dirs()
+    dir_options = [relative_or_absolute(path) for path in available_dirs]
+    current_dir = st.session_state["database_dir"]
+    if current_dir and current_dir not in dir_options:
+        dir_options.insert(0, current_dir)
+
+    if dir_options:
+        dir_options_with_placeholder = [FOLDER_PLACEHOLDER] + dir_options
+        try:
+            default_index = dir_options_with_placeholder.index(current_dir)
+        except ValueError:
+            default_index = 0
+        st.selectbox(
+            "Known folders",
+            dir_options_with_placeholder,
+            index=default_index,
+            key="database_dir_choice",
+            on_change=sync_database_dir_from_choice,
+        )
+    st.text_input("Database directory", key="database_dir", placeholder="e.g. data/olympus")
+
+    database_dir_text = st.session_state["database_dir"]
     feature_type = st.selectbox("Feature type", feature_options)
 
     if feature_type == "dnn":
@@ -182,45 +235,46 @@ if submitted:
 
     st.code(shlex.join(cmd), language="bash")
 
-    completed = subprocess.run(
-        cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, check=False
-    )
+    try:
+        completed = subprocess.run(
+            cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, check=False
+        )
 
-    if temp_path is not None and temp_path.exists():
-        temp_path.unlink(missing_ok=True)
+        if completed.returncode != 0:
+            st.error("CBIR execution failed.")
+            stderr_text = completed.stderr.strip() or "(no stderr output)"
+            st.code(stderr_text, language="text")
+            st.stop()
 
-    if completed.returncode != 0:
-        st.error("CBIR execution failed.")
-        stderr_text = completed.stderr.strip() or "(no stderr output)"
-        st.code(stderr_text, language="text")
-        st.stop()
+        results = parse_cbir_output(completed.stdout)
+        if not results:
+            st.warning("No results returned.")
+            raw_output = completed.stdout.strip() or "(empty output)"
+            st.code(raw_output, language="text")
+            st.stop()
 
-    results = parse_cbir_output(completed.stdout)
-    if not results:
-        st.warning("No results returned.")
-        raw_output = completed.stdout.strip() or "(empty output)"
-        st.code(raw_output, language="text")
-        st.stop()
+        st.success(f"Retrieved {len(results)} results.")
+        st.dataframe(results, use_container_width=True, hide_index=True)
 
-    st.success(f"Retrieved {len(results)} results.")
-    st.dataframe(results, use_container_width=True, hide_index=True)
+        st.subheader("Query")
+        query_preview_path = resolve_path(target_image_arg)
+        if query_preview_path.exists():
+            st.image(str(query_preview_path), caption=target_image_arg, width=280)
+        else:
+            st.text(target_image_arg)
 
-    st.subheader("Query")
-    query_preview_path = resolve_path(target_image_arg)
-    if query_preview_path.exists():
-        st.image(str(query_preview_path), caption=target_image_arg, width=280)
-    else:
-        st.text(target_image_arg)
-
-    st.subheader("Matches")
-    cols = st.columns(4)
-    for idx, row in enumerate(results):
-        match_path_text = str(row["image"])
-        match_path = resolve_path(match_path_text)
-        distance_value = float(row["distance"])
-        caption = f"{Path(match_path_text).name} | distance={distance_value:.6f}"
-        with cols[idx % 4]:
-            if match_path.exists():
-                st.image(str(match_path), caption=caption, use_container_width=True)
-            else:
-                st.text(caption)
+        st.subheader("Matches")
+        cols = st.columns(4)
+        for idx, row in enumerate(results):
+            match_path_text = str(row["image"])
+            match_path = resolve_path(match_path_text)
+            distance_value = float(row["distance"])
+            caption = f"{Path(match_path_text).name} | distance={distance_value:.6f}"
+            with cols[idx % 4]:
+                if match_path.exists():
+                    st.image(str(match_path), caption=caption, use_container_width=True)
+                else:
+                    st.text(caption)
+    finally:
+        if temp_path is not None and temp_path.exists():
+            temp_path.unlink(missing_ok=True)
