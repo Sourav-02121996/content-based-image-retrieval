@@ -65,14 +65,6 @@ def parse_cbir_output(stdout_text: str) -> list[dict[str, float | str]]:
     return rows
 
 
-def get_default_database_dir() -> str:
-    candidates = ["data/olympus", "olympus"]
-    for candidate in candidates:
-        if resolve_path(candidate).is_dir():
-            return candidate
-    return "data/olympus"
-
-
 @st.cache_data(show_spinner=False)
 def list_database_dirs() -> list[Path]:
     candidates: set[Path] = set()
@@ -227,11 +219,6 @@ with right_col:
             type=["jpg", "jpeg", "png", "bmp"],
             accept_multiple_files=False,
         )
-        if feature_type == "dnn":
-            st.info(
-                "For dnn mode, uploaded images need an embedding row in the CSV "
-                "(filename must match)."
-            )
 
 submitted = st.button("Run CBIR", type="primary")
 
