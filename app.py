@@ -99,11 +99,11 @@ def list_database_dirs() -> list[Path]:
 def sync_database_dir_from_choice() -> None:
     choice = st.session_state.get("database_dir_choice")
     if choice and choice != FOLDER_PLACEHOLDER:
-        st.session_state["_selected_dir"] = choice
+        st.session_state["database_dir_input"] = choice
 
 
 def set_query_image(path_text: str) -> None:
-    st.session_state["_selected_query"] = path_text
+    st.session_state["query_image_input"] = path_text
 
 
 st.set_page_config(page_title="CBIR GUI", layout="wide")
@@ -127,19 +127,19 @@ feature_options = [
 left_col, right_col = st.columns([2, 1])
 
 with left_col:
-    if "_selected_dir" not in st.session_state:
-        st.session_state["_selected_dir"] = ""
+    if "database_dir_input" not in st.session_state:
+        st.session_state["database_dir_input"] = ""
 
     available_dirs = list_database_dirs()
     dir_options = [relative_or_absolute(path) for path in available_dirs]
-    dir_default = st.session_state["_selected_dir"]
-    if dir_default and dir_default not in dir_options:
-        dir_options.insert(0, dir_default)
+    current_dir = st.session_state["database_dir_input"]
+    if current_dir and current_dir not in dir_options:
+        dir_options.insert(0, current_dir)
 
     if dir_options:
         dir_options_with_placeholder = [FOLDER_PLACEHOLDER] + dir_options
         try:
-            default_index = dir_options_with_placeholder.index(dir_default)
+            default_index = dir_options_with_placeholder.index(current_dir)
         except ValueError:
             default_index = 0
         st.selectbox(
@@ -150,7 +150,7 @@ with left_col:
             on_change=sync_database_dir_from_choice,
         )
     database_dir_text = st.text_input(
-        "Database directory", value=dir_default, placeholder="e.g. data/olympus"
+        "Database directory", key="database_dir_input", placeholder="e.g. data/olympus"
     )
     feature_type = st.selectbox("Feature type", feature_options)
 
@@ -190,12 +190,11 @@ with right_col:
     uploaded_file = None
 
     if query_mode == "Choose from database":
-        if "_selected_query" not in st.session_state:
-            st.session_state["_selected_query"] = ""
+        if "query_image_input" not in st.session_state:
+            st.session_state["query_image_input"] = ""
 
-        query_default = st.session_state["_selected_query"]
         selected_image = st.text_input(
-            "Query image", value=query_default, placeholder=QUERY_PLACEHOLDER
+            "Query image", key="query_image_input", placeholder=QUERY_PLACEHOLDER
         ).strip() or None
 
         if images:
