@@ -99,7 +99,7 @@ def list_database_dirs() -> list[Path]:
 def sync_database_dir_from_choice() -> None:
     choice = st.session_state.get("database_dir_choice")
     if choice and choice != FOLDER_PLACEHOLDER:
-        st.session_state["database_dir"] = choice
+        st.session_state["_selected_dir"] = choice
 
 
 def set_query_image(path_text: str) -> None:
@@ -127,19 +127,19 @@ feature_options = [
 left_col, right_col = st.columns([2, 1])
 
 with left_col:
-    if "database_dir" not in st.session_state:
-        st.session_state["database_dir"] = ""
+    if "_selected_dir" not in st.session_state:
+        st.session_state["_selected_dir"] = ""
 
     available_dirs = list_database_dirs()
     dir_options = [relative_or_absolute(path) for path in available_dirs]
-    current_dir = st.session_state["database_dir"]
-    if current_dir and current_dir not in dir_options:
-        dir_options.insert(0, current_dir)
+    dir_default = st.session_state["_selected_dir"]
+    if dir_default and dir_default not in dir_options:
+        dir_options.insert(0, dir_default)
 
     if dir_options:
         dir_options_with_placeholder = [FOLDER_PLACEHOLDER] + dir_options
         try:
-            default_index = dir_options_with_placeholder.index(current_dir)
+            default_index = dir_options_with_placeholder.index(dir_default)
         except ValueError:
             default_index = 0
         st.selectbox(
@@ -149,9 +149,9 @@ with left_col:
             key="database_dir_choice",
             on_change=sync_database_dir_from_choice,
         )
-    st.text_input("Database directory", key="database_dir", placeholder="e.g. data/olympus")
-
-    database_dir_text = st.session_state["database_dir"]
+    database_dir_text = st.text_input(
+        "Database directory", value=dir_default, placeholder="e.g. data/olympus"
+    )
     feature_type = st.selectbox("Feature type", feature_options)
 
     if feature_type == "dnn":
@@ -170,11 +170,20 @@ with left_col:
     )
 
 with right_col:
+    upload_disabled = feature_type == "dnn"
+    query_options = ["Choose from database", "Upload image"]
     query_mode = st.radio(
         "Query image source",
-        ["Choose from database", "Upload image"],
+        query_options,
         horizontal=False,
+        captions=[
+            None,
+            "Not available for DNN (requires pre-computed embeddings)" if upload_disabled else None,
+        ],
     )
+    if query_mode == "Upload image" and upload_disabled:
+        st.error("DNN mode requires a pre-computed embedding. Please choose an image from the database instead.")
+        st.stop()
 
     images = list_images(database_dir_text)
     selected_image = None
