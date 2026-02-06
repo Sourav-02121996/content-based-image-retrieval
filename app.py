@@ -23,6 +23,7 @@ def resolve_path(path_text: str) -> Path:
     return path
 
 
+@st.cache_data(show_spinner=False)
 def list_images(database_dir_text: str) -> list[Path]:
     if not database_dir_text.strip():
         return []
@@ -72,6 +73,7 @@ def get_default_database_dir() -> str:
     return "data/olympus"
 
 
+@st.cache_data(show_spinner=False)
 def list_database_dirs() -> list[Path]:
     candidates: set[Path] = set()
     data_root = PROJECT_ROOT / "data"
@@ -101,7 +103,7 @@ def sync_database_dir_from_choice() -> None:
 
 
 def set_query_image(path_text: str) -> None:
-    st.session_state["query_image"] = path_text
+    st.session_state["_selected_query"] = path_text
 
 
 st.set_page_config(page_title="CBIR GUI", layout="wide")
@@ -179,11 +181,13 @@ with right_col:
     uploaded_file = None
 
     if query_mode == "Choose from database":
-        if "query_image" not in st.session_state:
-            st.session_state["query_image"] = ""
+        if "_selected_query" not in st.session_state:
+            st.session_state["_selected_query"] = ""
 
-        st.text_input("Query image", key="query_image", placeholder=QUERY_PLACEHOLDER)
-        selected_image = st.session_state["query_image"].strip() or None
+        query_default = st.session_state["_selected_query"]
+        selected_image = st.text_input(
+            "Query image", value=query_default, placeholder=QUERY_PLACEHOLDER
+        ).strip() or None
 
         if images:
             st.caption("Gallery (click Select to fill the query image field)")
@@ -191,14 +195,21 @@ with right_col:
                 gallery_cols = st.columns(4)
                 for idx, path in enumerate(images):
                     path_text = relative_or_absolute(path)
+                    is_selected = selected_image == path_text
                     with gallery_cols[idx % 4]:
-                        st.image(str(path), use_container_width=True)
-                        st.caption(Path(path_text).name)
+                        if is_selected:
+                            with st.container(border=True):
+                                st.image(str(path), use_container_width=True)
+                                st.caption(f"**{Path(path_text).name}**")
+                        else:
+                            st.image(str(path), use_container_width=True)
+                            st.caption(Path(path_text).name)
                         st.button(
-                            "Select",
+                            "Select" if not is_selected else "Selected",
                             key=f"select_query_{idx}",
                             on_click=set_query_image,
                             args=(path_text,),
+                            type="primary" if is_selected else "secondary",
                         )
         else:
             st.warning("No images found in the selected database directory.")
