@@ -12,6 +12,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 CBIR_BINARY = PROJECT_ROOT / "cbir"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
 FOLDER_PLACEHOLDER = "Select a folder..."
+QUERY_PLACEHOLDER = "Click an image below or type a path..."
+GALLERY_MAX_HEIGHT_PX = 420
 
 
 def resolve_path(path_text: str) -> Path:
@@ -98,6 +100,10 @@ def sync_database_dir_from_choice() -> None:
         st.session_state["database_dir"] = choice
 
 
+def set_query_image(path_text: str) -> None:
+    st.session_state["query_image"] = path_text
+
+
 st.set_page_config(page_title="CBIR GUI", layout="wide")
 st.title("Content-based Image Retrieval GUI")
 st.caption("Run the existing ./cbir command from a visual interface.")
@@ -173,11 +179,27 @@ with right_col:
     uploaded_file = None
 
     if query_mode == "Choose from database":
+        if "query_image" not in st.session_state:
+            st.session_state["query_image"] = ""
+
+        st.text_input("Query image", key="query_image", placeholder=QUERY_PLACEHOLDER)
+        selected_image = st.session_state["query_image"].strip() or None
+
         if images:
-            selected_image = st.selectbox(
-                "Query image",
-                [relative_or_absolute(path) for path in images],
-            )
+            st.caption("Gallery (click Select to fill the query image field)")
+            with st.container(height=GALLERY_MAX_HEIGHT_PX, border=True):
+                gallery_cols = st.columns(4)
+                for idx, path in enumerate(images):
+                    path_text = relative_or_absolute(path)
+                    with gallery_cols[idx % 4]:
+                        st.image(str(path), use_container_width=True)
+                        st.caption(Path(path_text).name)
+                        st.button(
+                            "Select",
+                            key=f"select_query_{idx}",
+                            on_click=set_query_image,
+                            args=(path_text,),
+                        )
         else:
             st.warning("No images found in the selected database directory.")
     else:
