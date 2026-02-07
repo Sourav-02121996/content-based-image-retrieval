@@ -20,6 +20,18 @@ From the project root:
 make
 ```
 
+## GUI (Streamlit)
+Run CBIR from a visual interface:
+```
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Notes:
+- Build `cbir` first with `make`.
+- In the GUI, set database directory to `data/olympus` (or `olympus` if that is where your folder is).
+- For `dnn`, provide the embeddings CSV path (for example `features/embeddings.csv`).
+
 ## Run
 ```
 ./cbir <target_image> <database_dir> <feature_type> <distance_metric> <N> [embeddings_csv] [--least]
