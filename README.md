@@ -13,6 +13,8 @@ the top N matches for a query image from a database directory.
 - macOS (darwin 25.2.0)
 - OpenCV 4
 - C++17 compiler
+- Streamlit (Python)
+- VS Code (development IDE)
 
 ## Build
 From the project root:
@@ -96,8 +98,11 @@ Use the required query images from the assignment prompt:
 - Task 5: `pic.0893.jpg`, `pic.0164.jpg`
 
 ## Extensions
-No extensions implemented yet. Optional: replace `custom_sunset` with a more
-specific category (bananas, trash bins) once the dataset is explored.
+We added a Streamlit GUI to run CBIR visually. The interface lets users select
+a query image and database folder, choose the feature type and distance metric,
+set `N`, optionally show least-similar results, and view ranked thumbnail grids.
+The GUI wraps the compiled C++ `cbir` binary and supports DNN embeddings by
+accepting a CSV path.
 
 ## Notes
 - The embeddings CSV (`features/embeddings.csv`) should contain filenames as the first column.

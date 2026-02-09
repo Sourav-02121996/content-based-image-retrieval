@@ -3,6 +3,12 @@
   S21
   
   Sample code to identify image fils in a directory
+
+  Standalone utility to scan directories for image files.
+  Prints matching filenames and full paths to stdout.
+  Uses POSIX dirent to iterate directory contents.
+  Serves as a sample helper for file listing.
+
 */
 #include <cstdio>
 #include <cstring>
@@ -12,7 +18,7 @@
 /*
   Given a directory on the command line, scans through the directory for image files.
 
-  Prints out the full path name for each file.  This can be used as an argument to fopen or to cv::imread.
+  Prints out the full path name for each file. This can be used as an argument to fopen or to cv::imread.
  */
 int main(int argc, char *argv[]) {
   char dirname[256];
@@ -48,6 +54,7 @@ int main(int argc, char *argv[]) {
 	strstr(dp->d_name, ".ppm") ||
 	strstr(dp->d_name, ".tif") ) {
 
+      // echo the filename and its full path for downstream tools
       printf("processing image file: %s\n", dp->d_name);
 
       // build the overall filename
@@ -64,5 +71,3 @@ int main(int argc, char *argv[]) {
 
   return(0);
 }
-
-

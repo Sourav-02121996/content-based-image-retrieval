@@ -1,3 +1,11 @@
+/*
+Authors - Joseph Defendre, Sourav Das
+
+Implements vector distance and similarity metrics.
+Provides SSD and histogram intersection utilities.
+Adds weighted multi-histogram distance support.
+Implements cosine distance with a zero-norm guard.
+*/
 #include "../include/distance_metrics.h"
 
 #include <algorithm>
@@ -5,6 +13,7 @@
 #include <numeric>
 #include <stdexcept>
 
+// Sum of squared differences between matching vector elements.
 float ssdDistance(const std::vector<float> &a, const std::vector<float> &b) {
     if (a.size() != b.size()) {
         throw std::runtime_error("SSD distance size mismatch.");
@@ -17,6 +26,7 @@ float ssdDistance(const std::vector<float> &a, const std::vector<float> &b) {
     return sum;
 }
 
+// Histogram intersection similarity in [0, 1] when histograms are normalized.
 float histogramIntersectionSimilarity(
     const std::vector<float> &a,
     const std::vector<float> &b) {
@@ -30,6 +40,7 @@ float histogramIntersectionSimilarity(
     return sum;
 }
 
+// Convert similarity to distance (smaller is more similar).
 float histogramIntersectionDistance(
     const std::vector<float> &a,
     const std::vector<float> &b) {
@@ -37,6 +48,7 @@ float histogramIntersectionDistance(
     return 1.0f - similarity;
 }
 
+// Compute a weighted average of per-region histogram intersection distances.
 float histogramIntersectionDistanceMulti(
     const std::vector<float> &a,
     const std::vector<float> &b,
@@ -58,15 +70,18 @@ float histogramIntersectionDistanceMulti(
     float total = 0.0f;
     for (size_t region = 0; region < histogramCount; ++region) {
         size_t offset = region * binsPerHistogram;
+        // Slice out the histogram block for this region.
         std::vector<float> histA(a.begin() + offset, a.begin() + offset + binsPerHistogram);
         std::vector<float> histB(b.begin() + offset, b.begin() + offset + binsPerHistogram);
         float distance = histogramIntersectionDistance(histA, histB);
         total += distance * weights[region];
     }
 
+    // Normalize by total weight to keep distance scale comparable.
     return total / weightSum;
 }
 
+// Cosine distance (1 - cosine similarity) with zero-norm protection.
 float cosineDistance(const std::vector<float> &a, const std::vector<float> &b) {
     if (a.size() != b.size()) {
         throw std::runtime_error("Cosine distance size mismatch.");

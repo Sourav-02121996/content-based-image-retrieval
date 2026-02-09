@@ -1,3 +1,11 @@
+"""
+Authors - Joseph Defendre, Sourav Das
+
+Streamlit GUI wrapper around the cbir CLI.
+Lets users select database folders and query images.
+Runs retrieval and renders results with previews.
+Supports classic features and DNN embedding mode.
+"""
 from __future__ import annotations
 
 import shlex
@@ -8,6 +16,7 @@ from pathlib import Path
 import streamlit as st
 
 
+# Project-level constants for file locations and UI defaults.
 PROJECT_ROOT = Path(__file__).resolve().parent
 CBIR_BINARY = PROJECT_ROOT / "cbir"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp"}
@@ -16,6 +25,7 @@ QUERY_PLACEHOLDER = "Click an image below or type a path..."
 GALLERY_MAX_HEIGHT_PX = 420
 
 
+# Resolve user-entered paths relative to the project root.
 def resolve_path(path_text: str) -> Path:
     path = Path(path_text).expanduser()
     if not path.is_absolute():
@@ -24,6 +34,7 @@ def resolve_path(path_text: str) -> Path:
 
 
 @st.cache_data(show_spinner=False)
+# List images in the chosen database directory.
 def list_images(database_dir_text: str) -> list[Path]:
     if not database_dir_text.strip():
         return []
@@ -38,6 +49,7 @@ def list_images(database_dir_text: str) -> list[Path]:
     return sorted(files)
 
 
+# Return a display-friendly path, preferring project-relative paths.
 def relative_or_absolute(path: Path) -> str:
     try:
         return str(path.relative_to(PROJECT_ROOT))
@@ -45,6 +57,7 @@ def relative_or_absolute(path: Path) -> str:
         return str(path)
 
 
+# Parse the cbir CLI output into rows for a table.
 def parse_cbir_output(stdout_text: str) -> list[dict[str, float | str]]:
     rows = []
     for line in stdout_text.splitlines():
@@ -66,6 +79,7 @@ def parse_cbir_output(stdout_text: str) -> list[dict[str, float | str]]:
 
 
 @st.cache_data(show_spinner=False)
+# Find folders under data/ or olympus/ that contain images.
 def list_database_dirs() -> list[Path]:
     candidates: set[Path] = set()
     data_root = PROJECT_ROOT / "data"
@@ -88,20 +102,24 @@ def list_database_dirs() -> list[Path]:
     return sorted(candidates)
 
 
+# Sync dropdown selection into the editable text input.
 def sync_database_dir_from_choice() -> None:
     choice = st.session_state.get("database_dir_choice")
     if choice and choice != FOLDER_PLACEHOLDER:
         st.session_state["database_dir_input"] = choice
 
 
+# Update the query image text box when a gallery item is selected.
 def set_query_image(path_text: str) -> None:
     st.session_state["query_image_input"] = path_text
 
 
+# App header and basic layout config.
 st.set_page_config(page_title="CBIR GUI", layout="wide")
 st.title("Content-based Image Retrieval GUI")
 st.caption("Run the existing ./cbir command from a visual interface.")
 
+# Require the compiled binary to be present.
 if not CBIR_BINARY.exists():
     st.error("Missing ./cbir binary. Build it first with: make")
     st.stop()
@@ -119,6 +137,7 @@ feature_options = [
 left_col, right_col = st.columns([2, 1])
 
 with left_col:
+    # Database directory inputs and search configuration.
     if "database_dir_input" not in st.session_state:
         st.session_state["database_dir_input"] = ""
 
@@ -146,6 +165,7 @@ with left_col:
     )
     feature_type = st.selectbox("Feature type", feature_options)
 
+    # Limit distance metric choices based on feature type.
     if feature_type == "dnn":
         distance_options = ["cosine", "ssd"]
     elif feature_type == "baseline":
@@ -162,6 +182,7 @@ with left_col:
     )
 
 with right_col:
+    # Query image selection controls.
     upload_disabled = feature_type == "dnn"
     query_options = ["Choose from database", "Upload image"]
     query_mode = st.radio(
@@ -190,6 +211,7 @@ with right_col:
         ).strip() or None
 
         if images:
+            # Render a scrollable gallery with per-image select buttons.
             st.caption("Gallery (click Select to fill the query image field)")
             with st.container(height=GALLERY_MAX_HEIGHT_PX, border=True):
                 gallery_cols = st.columns(4)
@@ -214,6 +236,7 @@ with right_col:
         else:
             st.warning("No images found in the selected database directory.")
     else:
+        # Upload a query image (not available for DNN mode).
         uploaded_file = st.file_uploader(
             "Upload query image",
             type=["jpg", "jpeg", "png", "bmp"],
@@ -224,6 +247,7 @@ submitted = st.button("Run CBIR", type="primary")
 
 
 if submitted:
+    # Validate inputs before invoking the cbir binary.
     database_dir = resolve_path(database_dir_text)
     if not database_dir.exists() or not database_dir.is_dir():
         st.error(f"Database directory not found: {database_dir}")
@@ -240,6 +264,7 @@ if submitted:
             st.error("Upload a query image.")
             st.stop()
 
+        # Persist the uploaded image to a temp file for the CLI.
         suffix = Path(uploaded_file.name).suffix or ".jpg"
         with tempfile.NamedTemporaryFile(
             delete=False, suffix=suffix, prefix="cbir_query_", dir=tempfile.gettempdir()
@@ -256,6 +281,7 @@ if submitted:
         distance_metric,
         str(int(top_n)),
     ]
+    # Append optional arguments for DNN embeddings and least-similar retrieval.
     if feature_type == "dnn":
         cmd.append(embeddings_csv_text)
     if show_least:
@@ -264,6 +290,7 @@ if submitted:
     st.code(shlex.join(cmd), language="bash")
 
     try:
+        # Run cbir and capture output for rendering in the GUI.
         completed = subprocess.run(
             cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, check=False
         )
@@ -284,6 +311,7 @@ if submitted:
         st.success(f"Retrieved {len(results)} results.")
         st.dataframe(results, use_container_width=True, hide_index=True)
 
+        # Query preview panel.
         st.subheader("Query")
         query_preview_path = resolve_path(target_image_arg)
         if query_preview_path.exists():
@@ -291,6 +319,7 @@ if submitted:
         else:
             st.text(target_image_arg)
 
+        # Grid of matched images.
         st.subheader("Matches")
         cols = st.columns(4)
         for idx, row in enumerate(results):
@@ -304,5 +333,6 @@ if submitted:
                 else:
                     st.text(caption)
     finally:
+        # Clean up the temporary upload if one was created.
         if temp_path is not None and temp_path.exists():
             temp_path.unlink(missing_ok=True)
