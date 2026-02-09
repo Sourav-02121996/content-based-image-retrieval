@@ -13,6 +13,8 @@ the top N matches for a query image from a database directory.
 - macOS (darwin 25.2.0)
 - OpenCV 4
 - C++17 compiler
+- Streamlit (Python)
+- VS Code (development IDE)
 
 ## Build
 From the project root:

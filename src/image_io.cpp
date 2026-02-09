@@ -1,3 +1,11 @@
+/*
+Authors - Joseph Defendre, Sourav Das
+
+Implements image and CSV I/O helpers.
+Finds image files by extension and loads with OpenCV.
+Reads/writes feature CSVs and embedding CSVs.
+Provides parsing utilities with basic validation.
+*/
 #include "../include/image_io.h"
 
 #include <algorithm>
@@ -7,6 +15,7 @@
 #include <stdexcept>
 
 namespace {
+// Check common image extensions (case-insensitive).
 bool hasImageExtension(const std::string &filename) {
     auto lower = filename;
     std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
@@ -18,6 +27,7 @@ bool hasImageExtension(const std::string &filename) {
     return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp";
 }
 
+// Parse a comma-separated list of floats, tolerating empty cells as zero.
 std::vector<float> parseCsvNumbers(const std::string &line) {
     std::vector<float> values;
     std::stringstream lineStream(line);
@@ -33,6 +43,7 @@ std::vector<float> parseCsvNumbers(const std::string &line) {
 }
 } // namespace
 
+// Enumerate and sort image files from a directory.
 std::vector<std::string> listImageFiles(const std::string &directoryPath) {
     std::vector<std::string> files;
     for (const auto &entry : std::filesystem::directory_iterator(directoryPath)) {
@@ -48,6 +59,7 @@ std::vector<std::string> listImageFiles(const std::string &directoryPath) {
     return files;
 }
 
+// Load an image and throw if OpenCV fails to decode it.
 cv::Mat loadImageOrThrow(const std::string &imagePath) {
     cv::Mat image = cv::imread(imagePath, cv::IMREAD_COLOR);
     if (image.empty()) {
@@ -56,6 +68,7 @@ cv::Mat loadImageOrThrow(const std::string &imagePath) {
     return image;
 }
 
+// Write a CSV of filename followed by feature values.
 bool writeFeaturesCsv(
     const std::string &outputPath,
     const std::vector<std::pair<std::string, std::vector<float>>> &features) {
@@ -75,6 +88,7 @@ bool writeFeaturesCsv(
     return true;
 }
 
+// Read a CSV of filename followed by feature values.
 std::vector<std::pair<std::string, std::vector<float>>> readFeaturesCsv(
     const std::string &inputPath) {
     std::ifstream inputFile(inputPath);
@@ -100,6 +114,7 @@ std::vector<std::pair<std::string, std::vector<float>>> readFeaturesCsv(
     return features;
 }
 
+// Read embeddings into a filename -> vector map.
 std::unordered_map<std::string, std::vector<float>> readEmbeddingsCsv(
     const std::string &inputPath) {
     std::ifstream inputFile(inputPath);

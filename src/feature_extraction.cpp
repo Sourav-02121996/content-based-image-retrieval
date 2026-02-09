@@ -1,3 +1,11 @@
+/*
+Authors - Joseph Defendre, Sourav Das
+
+Implements image feature extraction routines.
+Builds histograms and patch features from OpenCV images.
+Provides multi-region and texture+color descriptors.
+Includes helpers for normalization and binning.
+*/
 #include "../include/feature_extraction.h"
 
 #include <algorithm>
@@ -5,6 +13,7 @@
 #include <numeric>
 
 namespace {
+// Normalize histogram counts to sum to 1.0 (no-op if sum is zero).
 std::vector<float> normalizeHistogram(const std::vector<float> &histogram) {
     float sum = std::accumulate(histogram.begin(), histogram.end(), 0.0f);
     if (sum <= 0.0f) {
@@ -16,10 +25,12 @@ std::vector<float> normalizeHistogram(const std::vector<float> &histogram) {
     return normalized;
 }
 
+// Clamp integer indices to a valid [0, maxValue] range.
 int clampIndex(int value, int maxValue) {
     return std::min(std::max(value, 0), maxValue);
 }
 
+// Ensure the image is at least minSize x minSize by resizing if needed.
 cv::Mat ensureMinSize(const cv::Mat &image, int minSize) {
     if (image.rows >= minSize && image.cols >= minSize) {
         return image;
@@ -29,12 +40,14 @@ cv::Mat ensureMinSize(const cv::Mat &image, int minSize) {
     return resized;
 }
 
+// Map a normalized value in [0, 1] to a histogram bin index.
 int binForValue(float value, int bins) {
     int index = static_cast<int>(value * bins);
     return clampIndex(index, bins - 1);
 }
 } // namespace
 
+// Extract a center patch and flatten BGR pixels into a feature vector.
 std::vector<float> extractCenterPatchFeature(const cv::Mat &image, int patchSize) {
     cv::Mat safeImage = ensureMinSize(image, patchSize);
     int centerRow = safeImage.rows / 2;
@@ -48,6 +61,7 @@ std::vector<float> extractCenterPatchFeature(const cv::Mat &image, int patchSize
     std::vector<float> feature;
     feature.reserve(patchSize * patchSize * safeImage.channels());
     for (int row = startRow; row < endRow; ++row) {
+        // Access row pointers once for performance.
         const auto *rowPtr = safeImage.ptr<cv::Vec3b>(row);
         for (int col = startCol; col < endCol; ++col) {
             const cv::Vec3b &pixel = rowPtr[col];
@@ -59,6 +73,7 @@ std::vector<float> extractCenterPatchFeature(const cv::Mat &image, int patchSize
     return feature;
 }
 
+// Compute a normalized RGB histogram over the entire image.
 std::vector<float> extractRgbHistogram(const cv::Mat &image, int binsPerChannel) {
     int totalBins = binsPerChannel * binsPerChannel * binsPerChannel;
     std::vector<float> histogram(totalBins, 0.0f);
@@ -73,6 +88,7 @@ std::vector<float> extractRgbHistogram(const cv::Mat &image, int binsPerChannel)
             int binB = binForValue(b, binsPerChannel);
             int binG = binForValue(g, binsPerChannel);
             int binR = binForValue(r, binsPerChannel);
+            // Flatten 3D bin coordinates into a single index.
             int index = (binR * binsPerChannel * binsPerChannel) +
                         (binG * binsPerChannel) + binB;
             histogram[index] += 1.0f;
@@ -82,6 +98,7 @@ std::vector<float> extractRgbHistogram(const cv::Mat &image, int binsPerChannel)
     return normalizeHistogram(histogram);
 }
 
+// Compute a normalized r-g chromaticity histogram (r and g normalized by r+g+b).
 std::vector<float> extractRgChromaticityHistogram(const cv::Mat &image, int binsPerChannel) {
     int totalBins = binsPerChannel * binsPerChannel;
     std::vector<float> histogram(totalBins, 0.0f);
@@ -94,6 +111,7 @@ std::vector<float> extractRgChromaticityHistogram(const cv::Mat &image, int bins
             float g = static_cast<float>(pixel[1]);
             float b = static_cast<float>(pixel[0]);
             float sum = r + g + b;
+            // Normalize to chromaticity space; guard against divide-by-zero.
             float rNorm = sum > 0.0f ? r / sum : 0.0f;
             float gNorm = sum > 0.0f ? g / sum : 0.0f;
             int binR = binForValue(rNorm, binsPerChannel);
@@ -106,6 +124,7 @@ std::vector<float> extractRgChromaticityHistogram(const cv::Mat &image, int bins
     return normalizeHistogram(histogram);
 }
 
+// Split the image into horizontal bands and concatenate their RGB histograms.
 std::vector<float> extractMultiRegionRgbHistogram(
     const cv::Mat &image,
     int binsPerChannel,
@@ -120,6 +139,7 @@ std::vector<float> extractMultiRegionRgbHistogram(
         int startRow = region * rowsPerRegion;
         int endRow = (region == regionCount - 1) ? image.rows
                                                  : (region + 1) * rowsPerRegion;
+        // Compute per-region histogram and append to the feature vector.
         cv::Mat slice = image.rowRange(startRow, endRow);
         auto regionHist = extractRgbHistogram(slice, binsPerChannel);
         feature.insert(feature.end(), regionHist.begin(), regionHist.end());
@@ -128,6 +148,7 @@ std::vector<float> extractMultiRegionRgbHistogram(
     return feature;
 }
 
+// Compute a normalized histogram of Sobel gradient magnitudes.
 std::vector<float> extractSobelMagnitudeHistogram(const cv::Mat &image, int bins) {
     cv::Mat gray;
     cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
@@ -149,6 +170,7 @@ std::vector<float> extractSobelMagnitudeHistogram(const cv::Mat &image, int bins
     for (int row = 0; row < magnitude.rows; ++row) {
         const auto *rowPtr = magnitude.ptr<float>(row);
         for (int col = 0; col < magnitude.cols; ++col) {
+            // Normalize magnitude to [0, 1] before binning.
             float normalized = rowPtr[col] / maxMagnitude;
             int bin = binForValue(normalized, bins);
             histogram[bin] += 1.0f;
@@ -158,6 +180,7 @@ std::vector<float> extractSobelMagnitudeHistogram(const cv::Mat &image, int bins
     return normalizeHistogram(histogram);
 }
 
+// Convenience wrapper for the multi-region histogram used in the custom task.
 std::vector<float> extractCustomSunsetHistogram(
     const cv::Mat &image,
     int binsPerChannel,

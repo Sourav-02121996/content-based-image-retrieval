@@ -1,3 +1,11 @@
+/*
+Authors - Joseph Defendre, Sourav Das
+
+CLI entry point for the CBIR system.
+Parses arguments and dispatches feature extraction.
+Computes distances and ranks matches.
+Supports embeddings-based DNN mode and least-similar output.
+*/
 #include "../include/distance_metrics.h"
 #include "../include/feature_extraction.h"
 #include "../include/image_io.h"
@@ -7,17 +15,21 @@
 #include <iostream>
 #include <filesystem>
 #include <string>
+
+// Extract filename from a full path (used for embedding CSV keys).
 std::string basenameFromPath(const std::string &path) {
     return std::filesystem::path(path).filename().string();
 }
 #include <vector>
 
 namespace {
+// Simple result record for ranking.
 struct Match {
     std::string filename;
     float distance;
 };
 
+// Print CLI help text.
 void printUsage() {
     std::cout
         << "Usage:\n"
@@ -36,6 +48,7 @@ void printUsage() {
         << "  cosine\n";
 }
 
+// Return the top-N matches sorted by distance (ascending or descending).
 std::vector<Match> topMatches(std::vector<Match> matches, int topN, bool descending) {
     std::sort(matches.begin(), matches.end(),
               [descending](const Match &a, const Match &b) {
@@ -55,6 +68,7 @@ int main(int argc, char **argv) {
     }
 
     try {
+        // Parse required arguments and optional embeddings/flags.
         std::string targetImagePath = argv[1];
         std::string databaseDir = argv[2];
         std::string featureType = argv[3];
@@ -81,6 +95,7 @@ int main(int argc, char **argv) {
         std::vector<Match> matches;
         matches.reserve(imageFiles.size());
 
+        // DNN embeddings are matched via filename lookup in the CSV.
         if (featureType == "dnn") {
             if (embeddingsPath.empty()) {
                 std::cerr << "Missing embeddings CSV path for DNN features.\n";
@@ -98,6 +113,7 @@ int main(int argc, char **argv) {
                 std::string key = basenameFromPath(file);
                 auto embedIt = embeddings.find(key);
                 if (embedIt == embeddings.end()) {
+                    // Skip files that don't have embeddings.
                     continue;
                 }
                 const auto &embedding = embedIt->second;
@@ -110,6 +126,8 @@ int main(int argc, char **argv) {
                 matches.push_back({file, distance});
             }
         } else {
+
+            // Feature extraction on raw pixels for classic descriptors.
             cv::Mat targetImage = loadImageOrThrow(targetImagePath);
 
             if (featureType == "baseline") {
@@ -142,6 +160,8 @@ int main(int argc, char **argv) {
                 auto targetFeature =
                     extractMultiRegionRgbHistogram(targetImage, binsPerChannel, regionCount);
                 size_t binsPerHistogram = static_cast<size_t>(binsPerChannel * binsPerChannel * binsPerChannel);
+
+                // Uniform region weights for the default multi-histogram.
                 std::vector<float> weights(regionCount, 1.0f);
                 for (const auto &file : imageFiles) {
                     cv::Mat image = loadImageOrThrow(file);
@@ -169,6 +189,8 @@ int main(int argc, char **argv) {
                 auto targetFeature =
                     extractCustomSunsetHistogram(targetImage, binsPerChannel, regionCount);
                 size_t binsPerHistogram = static_cast<size_t>(binsPerChannel * binsPerChannel * binsPerChannel);
+                
+                // Emphasize the horizon region for sunsets.
                 std::vector<float> weights = {0.2f, 0.3f, 0.5f};
                 for (const auto &file : imageFiles) {
                     cv::Mat image = loadImageOrThrow(file);
