@@ -15,7 +15,12 @@ Provides parsing utilities with basic validation.
 #include <stdexcept>
 
 namespace {
-// Check common image extensions (case-insensitive).
+/**
+ * Check common image extensions (case-insensitive).
+ *
+ * @param filename Filename or path.
+ * @return True if the extension is a supported image type.
+ */
 bool hasImageExtension(const std::string &filename) {
     auto lower = filename;
     std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
@@ -27,7 +32,12 @@ bool hasImageExtension(const std::string &filename) {
     return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp";
 }
 
-// Parse a comma-separated list of floats, tolerating empty cells as zero.
+/**
+ * Parse a comma-separated list of floats, treating empty cells as zero.
+ *
+ * @param line CSV line containing numeric values.
+ * @return Vector of parsed float values.
+ */
 std::vector<float> parseCsvNumbers(const std::string &line) {
     std::vector<float> values;
     std::stringstream lineStream(line);
@@ -43,7 +53,12 @@ std::vector<float> parseCsvNumbers(const std::string &line) {
 }
 } // namespace
 
-// Enumerate and sort image files from a directory.
+/**
+ * Enumerate and sort image files from a directory.
+ *
+ * @param directoryPath Directory to scan.
+ * @return Sorted list of image file paths.
+ */
 std::vector<std::string> listImageFiles(const std::string &directoryPath) {
     std::vector<std::string> files;
     for (const auto &entry : std::filesystem::directory_iterator(directoryPath)) {
@@ -59,7 +74,13 @@ std::vector<std::string> listImageFiles(const std::string &directoryPath) {
     return files;
 }
 
-// Load an image and throw if OpenCV fails to decode it.
+/**
+ * Load an image and throw if OpenCV fails to decode it.
+ *
+ * @param imagePath Path to the image file.
+ * @return Loaded BGR image.
+ * @throws std::runtime_error if loading fails.
+ */
 cv::Mat loadImageOrThrow(const std::string &imagePath) {
     cv::Mat image = cv::imread(imagePath, cv::IMREAD_COLOR);
     if (image.empty()) {
@@ -68,7 +89,13 @@ cv::Mat loadImageOrThrow(const std::string &imagePath) {
     return image;
 }
 
-// Write a CSV of filename followed by feature values.
+/**
+ * Write a CSV of filename followed by feature values.
+ *
+ * @param outputPath Destination CSV path.
+ * @param features Vector of filename/feature pairs.
+ * @return True on success, false if the file cannot be opened.
+ */
 bool writeFeaturesCsv(
     const std::string &outputPath,
     const std::vector<std::pair<std::string, std::vector<float>>> &features) {
@@ -88,7 +115,13 @@ bool writeFeaturesCsv(
     return true;
 }
 
-// Read a CSV of filename followed by feature values.
+/**
+ * Read a CSV of filename followed by feature values.
+ *
+ * @param inputPath Source CSV path.
+ * @return Vector of filename/feature pairs.
+ * @throws std::runtime_error if the file cannot be opened.
+ */
 std::vector<std::pair<std::string, std::vector<float>>> readFeaturesCsv(
     const std::string &inputPath) {
     std::ifstream inputFile(inputPath);
@@ -114,7 +147,13 @@ std::vector<std::pair<std::string, std::vector<float>>> readFeaturesCsv(
     return features;
 }
 
-// Read embeddings into a filename -> vector map.
+/**
+ * Read embeddings into a filename -> vector map.
+ *
+ * @param inputPath Source CSV path.
+ * @return Map from filename to embedding vector.
+ * @throws std::runtime_error if the file cannot be opened.
+ */
 std::unordered_map<std::string, std::vector<float>> readEmbeddingsCsv(
     const std::string &inputPath) {
     std::ifstream inputFile(inputPath);

@@ -16,7 +16,12 @@ Supports embeddings-based DNN mode and least-similar output.
 #include <filesystem>
 #include <string>
 
-// Extract filename from a full path (used for embedding CSV keys).
+/**
+ * Extract filename from a full path (used for embedding CSV keys).
+ *
+ * @param path Full file path.
+ * @return Basename component of the path.
+ */
 std::string basenameFromPath(const std::string &path) {
     return std::filesystem::path(path).filename().string();
 }
@@ -29,7 +34,9 @@ struct Match {
     float distance;
 };
 
-// Print CLI help text.
+/**
+ * Print CLI usage and options to stdout.
+ */
 void printUsage() {
     std::cout
         << "Usage:\n"
@@ -48,7 +55,14 @@ void printUsage() {
         << "  cosine\n";
 }
 
-// Return the top-N matches sorted by distance (ascending or descending).
+/**
+ * Return the top-N matches sorted by distance (ascending or descending).
+ *
+ * @param matches Unsorted match list.
+ * @param topN Number of results to keep.
+ * @param descending If true, return largest distances (least similar).
+ * @return Sorted and truncated match list.
+ */
 std::vector<Match> topMatches(std::vector<Match> matches, int topN, bool descending) {
     std::sort(matches.begin(), matches.end(),
               [descending](const Match &a, const Match &b) {
@@ -61,6 +75,13 @@ std::vector<Match> topMatches(std::vector<Match> matches, int topN, bool descend
 }
 } // namespace
 
+/**
+ * CLI entry point: parse arguments, compute features/distances, and rank matches.
+ *
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @return Exit code (0 on success).
+ */
 int main(int argc, char **argv) {
     if (argc < 6) {
         printUsage();

@@ -13,25 +13,63 @@ Used by the CLI and GUI to build feature vectors.
 #include <opencv2/opencv.hpp>
 #include <vector>
 
-// Extracts a flattened center patch in BGR order (uint8 -> float).
+/**
+ * Extract a flattened center patch in BGR order (uint8 -> float).
+ *
+ * @param image Input BGR image (CV_8UC3).
+ * @param patchSize Patch width/height in pixels (default 7).
+ * @return Flattened patch feature vector.
+ */
 std::vector<float> extractCenterPatchFeature(const cv::Mat &image, int patchSize = 7);
 
-// Computes a normalized RGB histogram with binsPerChannel bins per channel.
+/**
+ * Compute a normalized RGB histogram for the entire image.
+ *
+ * @param image Input BGR image (CV_8UC3).
+ * @param binsPerChannel Number of bins per channel (default 8).
+ * @return Normalized RGB histogram vector.
+ */
 std::vector<float> extractRgbHistogram(const cv::Mat &image, int binsPerChannel = 8);
 
-// Computes a normalized r-g chromaticity histogram (illumination-invariant).
+/**
+ * Compute a normalized r-g chromaticity histogram (illumination-invariant).
+ *
+ * @param image Input BGR image (CV_8UC3).
+ * @param binsPerChannel Number of bins per channel (default 16).
+ * @return Normalized r-g chromaticity histogram vector.
+ */
 std::vector<float> extractRgChromaticityHistogram(const cv::Mat &image, int binsPerChannel = 16);
 
-// Splits the image into horizontal regions and concatenates RGB histograms.
+/**
+ * Split the image into horizontal regions and concatenate RGB histograms.
+ *
+ * @param image Input BGR image (CV_8UC3).
+ * @param binsPerChannel Number of bins per channel (default 8).
+ * @param regionCount Number of horizontal regions (default 2).
+ * @return Concatenated multi-region histogram feature.
+ */
 std::vector<float> extractMultiRegionRgbHistogram(
     const cv::Mat &image,
     int binsPerChannel = 8,
     int regionCount = 2);
 
-// Computes a normalized histogram of Sobel gradient magnitudes.
+/**
+ * Compute a normalized histogram of Sobel gradient magnitudes.
+ *
+ * @param image Input BGR image (CV_8UC3).
+ * @param bins Number of magnitude bins (default 16).
+ * @return Normalized Sobel magnitude histogram vector.
+ */
 std::vector<float> extractSobelMagnitudeHistogram(const cv::Mat &image, int bins = 16);
 
-// Task-specific feature: multi-region RGB histogram weighted for sunsets.
+/**
+ * Task-specific feature: multi-region RGB histogram configured for sunsets.
+ *
+ * @param image Input BGR image (CV_8UC3).
+ * @param binsPerChannel Number of bins per channel (default 8).
+ * @param regionCount Number of horizontal regions (default 3).
+ * @return Concatenated histogram feature vector.
+ */
 std::vector<float> extractCustomSunsetHistogram(
     const cv::Mat &image,
     int binsPerChannel = 8,

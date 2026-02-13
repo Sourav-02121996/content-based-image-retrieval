@@ -1,8 +1,9 @@
 # Content-based Image Retrieval (Project 2)
 
-Authors: Joseph Defendre, Sourav Das  
+Name: Joseph Defendre, Sourav Das  
+Date: February 7, 2026
 Course: CS 5330 Pattern Recognition and Computer Vision  
-Due: February 10, 2026
+Project: Project2 - Content-based Image Retrieval
 
 ## Overview
 This project implements a C++ command-line CBIR system with classic features
@@ -33,6 +34,21 @@ Notes:
 - Build `cbir` first with `make`.
 - In the GUI, set database directory to `data/olympus` (or `olympus` if that is where your folder is).
 - For `dnn`, provide the embeddings CSV path (for example `features/embeddings.csv`).
+
+### Streamlit Install/Run (Step-by-step)
+1. (Optional) Create and activate a virtual environment:
+```
+python -m venv .venv
+source .venv/bin/activate
+```
+2. Install Python dependencies:
+```
+pip install -r requirements.txt
+```
+3. Launch the app:
+```
+streamlit run app.py
+```
 
 ## Run
 ```

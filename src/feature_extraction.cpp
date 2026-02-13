@@ -13,7 +13,12 @@ Includes helpers for normalization and binning.
 #include <numeric>
 
 namespace {
-// Normalize histogram counts to sum to 1.0 (no-op if sum is zero).
+/**
+ * Normalize histogram counts to sum to 1.0 (no-op if sum is zero).
+ *
+ * @param histogram Raw histogram counts.
+ * @return Normalized histogram (or original if sum is zero).
+ */
 std::vector<float> normalizeHistogram(const std::vector<float> &histogram) {
     float sum = std::accumulate(histogram.begin(), histogram.end(), 0.0f);
     if (sum <= 0.0f) {
@@ -25,12 +30,24 @@ std::vector<float> normalizeHistogram(const std::vector<float> &histogram) {
     return normalized;
 }
 
-// Clamp integer indices to a valid [0, maxValue] range.
+/**
+ * Clamp an integer index to the inclusive range [0, maxValue].
+ *
+ * @param value Input index.
+ * @param maxValue Maximum allowed value.
+ * @return Clamped index.
+ */
 int clampIndex(int value, int maxValue) {
     return std::min(std::max(value, 0), maxValue);
 }
 
-// Ensure the image is at least minSize x minSize by resizing if needed.
+/**
+ * Ensure the image is at least minSize x minSize by resizing if needed.
+ *
+ * @param image Input image.
+ * @param minSize Minimum width/height.
+ * @return Original image if large enough, otherwise a resized copy.
+ */
 cv::Mat ensureMinSize(const cv::Mat &image, int minSize) {
     if (image.rows >= minSize && image.cols >= minSize) {
         return image;
@@ -40,14 +57,26 @@ cv::Mat ensureMinSize(const cv::Mat &image, int minSize) {
     return resized;
 }
 
-// Map a normalized value in [0, 1] to a histogram bin index.
+/**
+ * Map a normalized value in [0, 1] to a histogram bin index.
+ *
+ * @param value Normalized value.
+ * @param bins Number of bins.
+ * @return Bin index in [0, bins - 1].
+ */
 int binForValue(float value, int bins) {
     int index = static_cast<int>(value * bins);
     return clampIndex(index, bins - 1);
 }
 } // namespace
 
-// Extract a center patch and flatten BGR pixels into a feature vector.
+/**
+ * Extract a center patch and flatten BGR pixels into a feature vector.
+ *
+ * @param image Input BGR image.
+ * @param patchSize Patch width/height in pixels.
+ * @return Flattened BGR patch feature.
+ */
 std::vector<float> extractCenterPatchFeature(const cv::Mat &image, int patchSize) {
     cv::Mat safeImage = ensureMinSize(image, patchSize);
     int centerRow = safeImage.rows / 2;
@@ -73,7 +102,13 @@ std::vector<float> extractCenterPatchFeature(const cv::Mat &image, int patchSize
     return feature;
 }
 
-// Compute a normalized RGB histogram over the entire image.
+/**
+ * Compute a normalized RGB histogram over the entire image.
+ *
+ * @param image Input BGR image.
+ * @param binsPerChannel Number of bins per channel.
+ * @return Normalized RGB histogram.
+ */
 std::vector<float> extractRgbHistogram(const cv::Mat &image, int binsPerChannel) {
     int totalBins = binsPerChannel * binsPerChannel * binsPerChannel;
     std::vector<float> histogram(totalBins, 0.0f);
@@ -98,7 +133,13 @@ std::vector<float> extractRgbHistogram(const cv::Mat &image, int binsPerChannel)
     return normalizeHistogram(histogram);
 }
 
-// Compute a normalized r-g chromaticity histogram (r and g normalized by r+g+b).
+/**
+ * Compute a normalized r-g chromaticity histogram (r and g normalized by r+g+b).
+ *
+ * @param image Input BGR image.
+ * @param binsPerChannel Number of bins per channel.
+ * @return Normalized r-g chromaticity histogram.
+ */
 std::vector<float> extractRgChromaticityHistogram(const cv::Mat &image, int binsPerChannel) {
     int totalBins = binsPerChannel * binsPerChannel;
     std::vector<float> histogram(totalBins, 0.0f);
@@ -124,7 +165,14 @@ std::vector<float> extractRgChromaticityHistogram(const cv::Mat &image, int bins
     return normalizeHistogram(histogram);
 }
 
-// Split the image into horizontal bands and concatenate their RGB histograms.
+/**
+ * Split the image into horizontal bands and concatenate their RGB histograms.
+ *
+ * @param image Input BGR image.
+ * @param binsPerChannel Number of bins per channel.
+ * @param regionCount Number of horizontal regions.
+ * @return Concatenated multi-region histogram feature.
+ */
 std::vector<float> extractMultiRegionRgbHistogram(
     const cv::Mat &image,
     int binsPerChannel,
@@ -148,7 +196,13 @@ std::vector<float> extractMultiRegionRgbHistogram(
     return feature;
 }
 
-// Compute a normalized histogram of Sobel gradient magnitudes.
+/**
+ * Compute a normalized histogram of Sobel gradient magnitudes.
+ *
+ * @param image Input BGR image.
+ * @param bins Number of magnitude bins.
+ * @return Normalized Sobel magnitude histogram.
+ */
 std::vector<float> extractSobelMagnitudeHistogram(const cv::Mat &image, int bins) {
     cv::Mat gray;
     cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
@@ -180,7 +234,14 @@ std::vector<float> extractSobelMagnitudeHistogram(const cv::Mat &image, int bins
     return normalizeHistogram(histogram);
 }
 
-// Convenience wrapper for the multi-region histogram used in the custom task.
+/**
+ * Convenience wrapper for the multi-region histogram used in the custom task.
+ *
+ * @param image Input BGR image.
+ * @param binsPerChannel Number of bins per channel.
+ * @param regionCount Number of regions.
+ * @return Concatenated multi-region histogram feature.
+ */
 std::vector<float> extractCustomSunsetHistogram(
     const cv::Mat &image,
     int binsPerChannel,

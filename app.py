@@ -27,6 +27,7 @@ GALLERY_MAX_HEIGHT_PX = 420
 
 # Resolve user-entered paths relative to the project root.
 def resolve_path(path_text: str) -> Path:
+    """Resolve a user-provided path relative to the project root."""
     path = Path(path_text).expanduser()
     if not path.is_absolute():
         path = PROJECT_ROOT / path
@@ -36,6 +37,7 @@ def resolve_path(path_text: str) -> Path:
 @st.cache_data(show_spinner=False)
 # List images in the chosen database directory.
 def list_images(database_dir_text: str) -> list[Path]:
+    """List image files in the chosen database directory."""
     if not database_dir_text.strip():
         return []
     database_dir = resolve_path(database_dir_text)
@@ -51,6 +53,7 @@ def list_images(database_dir_text: str) -> list[Path]:
 
 # Return a display-friendly path, preferring project-relative paths.
 def relative_or_absolute(path: Path) -> str:
+    """Return a display-friendly path, preferring project-relative paths."""
     try:
         return str(path.relative_to(PROJECT_ROOT))
     except ValueError:
@@ -59,6 +62,7 @@ def relative_or_absolute(path: Path) -> str:
 
 # Parse the cbir CLI output into rows for a table.
 def parse_cbir_output(stdout_text: str) -> list[dict[str, float | str]]:
+    """Parse cbir CLI output lines into a list of image/distance rows."""
     rows = []
     for line in stdout_text.splitlines():
         stripped = line.strip()
@@ -81,6 +85,7 @@ def parse_cbir_output(stdout_text: str) -> list[dict[str, float | str]]:
 @st.cache_data(show_spinner=False)
 # Find folders under data/ or olympus/ that contain images.
 def list_database_dirs() -> list[Path]:
+    """Find folders under data/ or olympus/ that contain images."""
     candidates: set[Path] = set()
     data_root = PROJECT_ROOT / "data"
     roots = [data_root] if data_root.is_dir() else []
@@ -104,6 +109,7 @@ def list_database_dirs() -> list[Path]:
 
 # Sync dropdown selection into the editable text input.
 def sync_database_dir_from_choice() -> None:
+    """Sync the dropdown selection into the editable text input."""
     choice = st.session_state.get("database_dir_choice")
     if choice and choice != FOLDER_PLACEHOLDER:
         st.session_state["database_dir_input"] = choice
@@ -111,6 +117,7 @@ def sync_database_dir_from_choice() -> None:
 
 # Update the query image text box when a gallery item is selected.
 def set_query_image(path_text: str) -> None:
+    """Set the query image path in session state."""
     st.session_state["query_image_input"] = path_text
 
 

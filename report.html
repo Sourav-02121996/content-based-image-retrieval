@@ -1,154 +1,273 @@
-<h1 id="project-2-content-based-image-retrieval">Project 2:
-Content-based Image Retrieval</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Project 2: Content-based Image Retrieval</title>
+<style>
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    max-width: 900px;
+    margin: 2em auto;
+    padding: 0 1.5em;
+    line-height: 1.6;
+    color: #222;
+  }
+  h1 { font-size: 1.6em; margin-bottom: 0.2em; }
+  h2 { font-size: 1.3em; margin-top: 2em; border-bottom: 1px solid #ccc; padding-bottom: 0.3em; }
+  h3 { font-size: 1.1em; margin-top: 1.5em; }
+  p.meta { color: #555; margin: 0.15em 0; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 1.5em 0; }
+
+  /* Image gallery grid */
+  .gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0.8em 0 1em 0;
+  }
+  .gallery figure {
+    margin: 0;
+    text-align: center;
+    width: 150px;
+  }
+  .gallery img {
+    width: 150px;
+    height: 112px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  .gallery figcaption {
+    font-size: 0.75em;
+    color: #555;
+    margin-top: 3px;
+    word-break: break-all;
+  }
+
+  /* Inline summary images (Task 6) */
+  .summary-img {
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex: 0 0 auto;
+  }
+  .summary-list {
+    list-style: disc;
+    padding-left: 1.5em;
+  }
+  .summary-list li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 0.6em;
+  }
+  .summary-text {
+    flex: 1;
+  }
+
+  /* Extension screenshots */
+  .screenshot {
+    max-width: 100%;
+    width: 500px;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 0.5em 0;
+  }
+
+  ul { padding-left: 1.5em; }
+  li { margin-bottom: 0.4em; }
+
+  @media print {
+    body { margin: 0; padding: 0 1em; }
+    .gallery img { width: 130px; height: 98px; }
+    .gallery figure { width: 130px; }
+    .screenshot { width: 400px; }
+    h2 { page-break-after: avoid; }
+    h3 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<h1>CS 5330 - Pattern Recognition and Computer Vision</h1>
+<h2>Project 2: Content-based Image Retrieval</h2>
+
+<p class="meta"><strong>Name:</strong> Joseph Defendre, Sourav Das</p>
+<p class="meta"><strong>Date:</strong> February 2026</p>
+<p class="meta"><strong>Course:</strong> CS 5330 Pattern Recognition and Computer Vision</p>
+
+<hr />
+
 <h2 id="project-description">1. Project Description</h2>
-<p>This project implements a content-based image retrieval (CBIR) system
-that matches a query image to a database by comparing visual features.
-The system supports baseline patch matching, color histograms,
-multi-region histograms, texture histograms (Sobel magnitude), deep
-network embeddings, and a custom feature configuration for a chosen
-category. Each method produces a feature vector for the target and
-database images, computes a distance metric, and returns the top-N
-closest matches.</p>
+<p>This project implements a content-based image retrieval (CBIR) system that
+matches a query image to a database by comparing visual features. The system
+supports baseline patch matching, color histograms, multi-region histograms,
+texture histograms (Sobel magnitude), deep network embeddings, and a custom
+feature configuration for a chosen category. Each method produces a feature
+vector for the target and database images, computes a distance metric, and
+returns the top-N closest matches.</p>
+
+<hr />
+
 <h2 id="required-results">2. Required Results</h2>
-<h3 id="task-1-baseline-matching">Task 1 — Baseline Matching</h3>
-<p>Review:<br />
-What it is: A baseline retrieval method to validate the pipeline using a
-simple, fixed image region and a basic distance metric.<br />
-What we did: Implemented a 7x7 center-patch feature and ranked images
-with SSD for the required query. - Query: pic.1016.jpg<br />
-- Top matches: - pic.1016.jpg<br />
-<img src="data/olympus/pic.1016.jpg" /> - pic.0986.jpg<br />
-<img src="data/olympus/pic.0986.jpg" /> - pic.0641.jpg<br />
-<img src="data/olympus/pic.0641.jpg" /> - pic.0547.jpg<br />
-<img src="data/olympus/pic.0547.jpg" /></p>
-<h3 id="task-2-histogram-matching">Task 2 — Histogram Matching</h3>
-<p>Review:<br />
-What it is: Use at least a 2D color histogram as the feature vector and
-compare with histogram intersection (implemented by you).<br />
-What we did: Computed a whole-image RG chromaticity histogram (16x16
-bins), normalized counts, and used histogram intersection for matching.
-- Query: pic.0164.jpg<br />
-- Top matches: - pic.0164.jpg<br />
-<img src="data/olympus/pic.0164.jpg" /> - pic.0080.jpg<br />
-<img src="data/olympus/pic.0080.jpg" /> - pic.1032.jpg<br />
-<img src="data/olympus/pic.1032.jpg" /> - pic.0461.jpg<br />
-<img src="data/olympus/pic.0461.jpg" /></p>
-<h3 id="task-3-multi-histogram-matching">Task 3 — Multi-histogram
-Matching</h3>
-<p>Review:<br />
-What it is: Use two or more color histograms (e.g., different regions)
-and combine their distances with a custom weighting scheme.<br />
-What we did: Built top/bottom RGB histograms (8 bins per channel) and
-combined histogram-intersection distances with equal weights. - Query:
-pic.0274.jpg<br />
-- Top matches: - pic.0274.jpg<br />
-<img src="data/olympus/pic.0274.jpg" /> - pic.0273.jpg<br />
-<img src="data/olympus/pic.0273.jpg" /> - pic.1031.jpg<br />
-<img src="data/olympus/pic.1031.jpg" /> - pic.0409.jpg<br />
-<img src="data/olympus/pic.0409.jpg" /></p>
-<h3 id="task-4-texture-color">Task 4 — Texture + Color</h3>
-<p>Review:<br />
-What it is: Combine a whole-image color histogram with a texture
-histogram and design a distance metric that balances both.<br />
-What we did: Used an RGB color histogram plus a Sobel magnitude
-histogram for texture, then compared with histogram intersection using
-equal weights. - Query: pic.0535.jpg<br />
-- Top matches: - pic.0535.jpg<br />
-<img src="data/olympus/pic.0535.jpg" /> - pic.0004.jpg<br />
-<img src="data/olympus/pic.0004.jpg" /> - pic.0001.jpg<br />
-<img src="data/olympus/pic.0001.jpg" /> - pic.0356.jpg<br />
-<img src="data/olympus/pic.0356.jpg" /> - Comparison vs Task 2/3: The
-texture+color method shifts matches toward images with similar edge
-structure (buildings/geometry) rather than only color similarity,
-compared to the histogram-only methods.</p>
-<h3 id="task-5-deep-network-embeddings">Task 5 — Deep Network
-Embeddings</h3>
-<p>Review:<br />
-What it is: Use deep network embeddings (e.g., ResNet18 global average
-pooling output) as features and match with a suitable distance
-metric.<br />
-What we did: Loaded precomputed ResNet18 embeddings from CSV and used
-cosine distance to rank results for the required queries. - Query:
-pic.0893.jpg<br />
-- Top matches: - pic.0893.jpg<br />
-<img src="data/olympus/pic.0893.jpg" /> - pic.0897.jpg<br />
-<img src="data/olympus/pic.0897.jpg" /> - pic.0136.jpg<br />
-<img src="data/olympus/pic.0136.jpg" /> - pic.0146.jpg<br />
-<img src="data/olympus/pic.0146.jpg" /> - Query: pic.0164.jpg<br />
-- Top matches: - pic.0164.jpg<br />
-<img src="data/olympus/pic.0164.jpg" /> - pic.1032.jpg<br />
-<img src="data/olympus/pic.1032.jpg" /> - pic.0213.jpg<br />
-<img src="data/olympus/pic.0213.jpg" /> - pic.0690.jpg<br />
-<img src="data/olympus/pic.0690.jpg" /> - Comparison vs classic
-features: DNN matches tend to preserve semantic content and layout even
-when overall color distributions differ, while classic histograms bias
-toward color similarity.</p>
-<h3 id="task-6-classic-vs-dnn-comparison">Task 6 — Classic vs DNN
-Comparison</h3>
-<p>Review:<br />
-What it is: Compare classic feature retrieval to DNN embeddings on 2-3
-images and discuss qualitative differences.<br />
-What we did: Ran histogram RG and DNN embeddings on the specified images
-(1072, 0948, 0734) and summarized how color-biased vs semantic matches
-differ. - Queries: pic.1072.jpg, pic.0948.jpg, pic.0734.jpg<br />
-- Summary: - pic.1072.jpg: Histogram RG returns color-similar scenes;
-DNN returns images with similar scene structure even with different
-palettes. - pic.0948.jpg: Histogram RG emphasizes color tone; DNN yields
-closer scene/subject context. - pic.0734.jpg: DNN results show
-near-neighbor scene continuity, while histogram RG mixes in visually
-similar colors from different contexts.</p>
-<h3 id="task-7-custom-design-sunset-oriented-feature">Task 7 — Custom
-Design (Sunset-Oriented Feature)</h3>
-<p>Review:<br />
-What it is: Design a custom feature for a category of your choice
-(optionally including DNN features, but not exclusively) and report best
-and least similar matches.<br />
-What we did: Implemented a sunset-oriented 3-region RGB histogram with
-higher weight on the horizon/sky transition and used histogram
-intersection to retrieve top-5 and least-5 matches. - Queries:
-pic.0048.jpg, pic.0552.jpg<br />
-- Top 5 matches (pic.0048.jpg): - pic.0048.jpg<br />
-<img src="data/olympus/pic.0048.jpg" /> - pic.0552.jpg<br />
-<img src="data/olympus/pic.0552.jpg" /> - pic.0533.jpg<br />
-<img src="data/olympus/pic.0533.jpg" /> - pic.1003.jpg<br />
-<img src="data/olympus/pic.1003.jpg" /> - pic.1059.jpg<br />
-<img src="data/olympus/pic.1059.jpg" /> - Least similar (pic.0048.jpg):
-- pic.0511.jpg<br />
-<img src="data/olympus/pic.0511.jpg" /> - pic.0558.jpg<br />
-<img src="data/olympus/pic.0558.jpg" /> - pic.0228.jpg<br />
-<img src="data/olympus/pic.0228.jpg" /> - pic.0890.jpg<br />
-<img src="data/olympus/pic.0890.jpg" /> - pic.0689.jpg<br />
-<img src="data/olympus/pic.0689.jpg" /> - Top 5 matches (pic.0552.jpg):
-- pic.0552.jpg<br />
-<img src="data/olympus/pic.0552.jpg" /> - pic.0048.jpg<br />
-<img src="data/olympus/pic.0048.jpg" /> - pic.0324.jpg<br />
-<img src="data/olympus/pic.0324.jpg" /> - pic.0197.jpg<br />
-<img src="data/olympus/pic.0197.jpg" /> - pic.0958.jpg<br />
-<img src="data/olympus/pic.0958.jpg" /> - Least similar (pic.0552.jpg):
-- pic.0511.jpg<br />
-<img src="data/olympus/pic.0511.jpg" /> - pic.0558.jpg<br />
-<img src="data/olympus/pic.0558.jpg" /> - pic.0228.jpg<br />
-<img src="data/olympus/pic.0228.jpg" /> - pic.0890.jpg<br />
-<img src="data/olympus/pic.0890.jpg" /> - pic.0046.jpg<br />
-<img src="data/olympus/pic.0046.jpg" /></p>
+
+<h3 id="task-1">Task 1 &mdash; Baseline Matching</h3>
+<p>Implemented a 7&times;7 center-patch feature and ranked images with SSD for the required query.</p>
+<p><strong>Query:</strong> pic.1016.jpg &nbsp; <strong>Top matches:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.1016.jpg" alt="pic.1016.jpg" /><figcaption>pic.1016.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0986.jpg" alt="pic.0986.jpg" /><figcaption>pic.0986.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0641.jpg" alt="pic.0641.jpg" /><figcaption>pic.0641.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0547.jpg" alt="pic.0547.jpg" /><figcaption>pic.0547.jpg</figcaption></figure>
+</div>
+
+<h3 id="task-2">Task 2 &mdash; Histogram Matching</h3>
+<p>Computed a whole-image RG chromaticity histogram (16&times;16 bins), normalized counts, and used histogram intersection for matching.</p>
+<p><strong>Query:</strong> pic.0164.jpg &nbsp; <strong>Top matches:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.0164.jpg" alt="pic.0164.jpg" /><figcaption>pic.0164.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0080.jpg" alt="pic.0080.jpg" /><figcaption>pic.0080.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.1032.jpg" alt="pic.1032.jpg" /><figcaption>pic.1032.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0461.jpg" alt="pic.0461.jpg" /><figcaption>pic.0461.jpg</figcaption></figure>
+</div>
+
+<h3 id="task-3">Task 3 &mdash; Multi-histogram Matching</h3>
+<p>Using two or more color histograms (e.g., different regions) and combine their distances with a custom weighting scheme.
+Built top/bottom RGB histograms (8 bins per channel) and combined histogram-intersection distances with equal weights.</p>
+<p><strong>Query:</strong> pic.0274.jpg &nbsp; <strong>Top matches:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.0274.jpg" alt="pic.0274.jpg" /><figcaption>pic.0274.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0273.jpg" alt="pic.0273.jpg" /><figcaption>pic.0273.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.1031.jpg" alt="pic.1031.jpg" /><figcaption>pic.1031.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0409.jpg" alt="pic.0409.jpg" /><figcaption>pic.0409.jpg</figcaption></figure>
+</div>
+
+<h3 id="task-4">Task 4 &mdash; Texture + Color</h3>
+<p>Combining a whole-image color histogram with a texture histogram and design a distance metric that balances both.
+Used an RGB color histogram plus a Sobel magnitude histogram for texture, then compared with histogram intersection using equal weights.</p>
+<p><strong>Query:</strong> pic.0535.jpg &nbsp; <strong>Top matches:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.0535.jpg" alt="pic.0535.jpg" /><figcaption>pic.0535.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0004.jpg" alt="pic.0004.jpg" /><figcaption>pic.0004.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0001.jpg" alt="pic.0001.jpg" /><figcaption>pic.0001.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0356.jpg" alt="pic.0356.jpg" /><figcaption>pic.0356.jpg</figcaption></figure>
+</div>
+<p>Comparison vs Task 2/3: The texture+color method shifts matches toward images with similar edge structure (buildings/geometry) rather than only color similarity, compared to the histogram-only methods.</p>
+
+<h3 id="task-5">Task 5 &mdash; Deep Network Embeddings</h3>
+<p>Using deep network embeddings (e.g., ResNet18 global average pooling output) as features and match with a suitable distance metric.
+Loaded precomputed ResNet18 embeddings from CSV and used cosine distance to rank results for the required queries.</p>
+
+<p><strong>Query:</strong> pic.0893.jpg &nbsp; <strong>Top matches:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.0893.jpg" alt="pic.0893.jpg" /><figcaption>pic.0893.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0897.jpg" alt="pic.0897.jpg" /><figcaption>pic.0897.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0136.jpg" alt="pic.0136.jpg" /><figcaption>pic.0136.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0146.jpg" alt="pic.0146.jpg" /><figcaption>pic.0146.jpg</figcaption></figure>
+</div>
+
+<p><strong>Query:</strong> pic.0164.jpg &nbsp; <strong>Top matches:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.0164.jpg" alt="pic.0164.jpg" /><figcaption>pic.0164.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.1032.jpg" alt="pic.1032.jpg" /><figcaption>pic.1032.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0213.jpg" alt="pic.0213.jpg" /><figcaption>pic.0213.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0690.jpg" alt="pic.0690.jpg" /><figcaption>pic.0690.jpg</figcaption></figure>
+</div>
+<p>Comparison vs classic features: DNN matches tend to preserve semantic content and layout even when overall color distributions differ, while classic histograms bias toward color similarity.</p>
+
+<h3 id="task-6">Task 6 &mdash; Classic vs DNN Comparison</h3>
+<p>We ran histogram RG and DNN embeddings on the specified images (pic.1072.jpg, pic.0948.jpg, pic.0734.jpg)  and summarized how color-biased vs semantic matches differ.</p>
+<p><strong>Queries:</strong> pic.1072.jpg, pic.0948.jpg, pic.0734.jpg</p>
+<ul class="summary-list">
+  <li>
+    <img class="summary-img" src="data/olympus/pic.1072.jpg" alt="pic.1072.jpg" />
+    <span class="summary-text"><strong>pic.1072.jpg</strong> &mdash; Histogram RG returns color-similar scenes; DNN returns images with similar scene structure even with different palettes.</span>
+  </li>
+  <li>
+    <img class="summary-img" src="data/olympus/pic.0948.jpg" alt="pic.0948.jpg" />
+    <span class="summary-text"><strong>pic.0948.jpg</strong> &mdash; Histogram RG emphasizes color tone; DNN yields closer scene/subject context.</span>
+  </li>
+  <li>
+    <img class="summary-img" src="data/olympus/pic.0734.jpg" alt="pic.0734.jpg" />
+    <span class="summary-text"><strong>pic.0734.jpg</strong> &mdash; DNN results show near-neighbor scene continuity, while histogram RG mixes in visually similar colors from different contexts.</span>
+  </li>
+</ul>
+
+<h3 id="task-7">Task 7 &mdash; Custom Design (Sunset-Oriented Feature)</h3>
+<p>Designing a custom feature for a category of our choice (optionally including DNN features, but not exclusively) and report best and least similar matches.
+We implemented a sunset-oriented 3-region RGB histogram with higher weight on the horizon/sky transition and used histogram intersection to retrieve top-5 and least-5 matches.</p>
+
+<p><strong>Query: pic.0048.jpg &mdash; Top 5 matches:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.0048.jpg" alt="pic.0048.jpg" /><figcaption>pic.0048.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0552.jpg" alt="pic.0552.jpg" /><figcaption>pic.0552.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0533.jpg" alt="pic.0533.jpg" /><figcaption>pic.0533.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.1003.jpg" alt="pic.1003.jpg" /><figcaption>pic.1003.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.1059.jpg" alt="pic.1059.jpg" /><figcaption>pic.1059.jpg</figcaption></figure>
+</div>
+
+<p><strong>Query: pic.0048.jpg &mdash; Least similar:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.0511.jpg" alt="pic.0511.jpg" /><figcaption>pic.0511.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0558.jpg" alt="pic.0558.jpg" /><figcaption>pic.0558.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0228.jpg" alt="pic.0228.jpg" /><figcaption>pic.0228.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0890.jpg" alt="pic.0890.jpg" /><figcaption>pic.0890.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0689.jpg" alt="pic.0689.jpg" /><figcaption>pic.0689.jpg</figcaption></figure>
+</div>
+
+<p><strong>Query: pic.0552.jpg &mdash; Top 5 matches:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.0552.jpg" alt="pic.0552.jpg" /><figcaption>pic.0552.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0048.jpg" alt="pic.0048.jpg" /><figcaption>pic.0048.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0324.jpg" alt="pic.0324.jpg" /><figcaption>pic.0324.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0197.jpg" alt="pic.0197.jpg" /><figcaption>pic.0197.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0958.jpg" alt="pic.0958.jpg" /><figcaption>pic.0958.jpg</figcaption></figure>
+</div>
+
+<p><strong>Query: pic.0552.jpg &mdash; Least similar:</strong></p>
+<div class="gallery">
+  <figure><img src="data/olympus/pic.0511.jpg" alt="pic.0511.jpg" /><figcaption>pic.0511.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0558.jpg" alt="pic.0558.jpg" /><figcaption>pic.0558.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0228.jpg" alt="pic.0228.jpg" /><figcaption>pic.0228.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0890.jpg" alt="pic.0890.jpg" /><figcaption>pic.0890.jpg</figcaption></figure>
+  <figure><img src="data/olympus/pic.0046.jpg" alt="pic.0046.jpg" /><figcaption>pic.0046.jpg</figcaption></figure>
+</div>
+
+<hr />
+
 <h2 id="extensions">3. Extensions</h2>
-<p>We built a lightweight Streamlit front-end to run CBIR visually. The
-GUI lets users pick a query image and database folder, choose the
-feature type and distance metric, set <code>N</code>, optionally show
-least-similar results, and display thumbnail grids of the ranked images.
-It wraps the compiled C++ <code>cbir</code> binary and supports DNN
-embeddings by accepting a CSV path.</p>
-<p><img src="assets/gui_screen_1.png" /> <img
-src="assets/gui_screen_2.png" /></p>
+<p>We built a lightweight Streamlit front-end to run CBIR visually. The GUI lets users pick a query image and database folder, choose the feature type and distance metric, set <code>N</code>, optionally show least-similar results, and display thumbnail grids of the ranked images. It wraps the compiled C++ <code>cbir</code> binary and supports DNN embeddings by accepting a CSV path.</p>
+<p><img class="screenshot" src="assets/gui_screen_1.png" alt="GUI screenshot 1" /></p>
+<p><img class="screenshot" src="assets/gui_screen_2.png" alt="GUI screenshot 2" /></p>
+
+<hr />
+
 <h2 id="reflection">4. Reflection</h2>
-<p>Building multiple feature extractors clarified how different
-representations capture different aspects of visual similarity. The
-classic histograms were fast and intuitive but biased toward color
-distributions, while adding texture helped match structural cues. The
-DNN embeddings frequently produced more semantically coherent matches,
-especially when color alone was ambiguous. The custom sunset feature
-benefited from emphasizing top-to-bottom regions, which aligned with the
-sky-to-ground gradient often present in sunsets.</p>
+<p>Building multiple feature extractors clarified how different representations capture different aspects of visual similarity. The classic histograms were fast and intuitive but biased toward color distributions, while adding texture helped match structural cues. The DNN embeddings frequently produced more semantically coherent matches, especially when color alone was ambiguous. The custom sunset feature benefited from emphasizing top-to-bottom regions, which aligned with the sky-to-ground gradient often present in sunsets.</p>
+
+<p>This project also surfaced the practical challenges that don&rsquo;t show up in a clean algorithm description. Getting C++ feature code, file I/O, and normalization to agree across different pipelines took more time than expected, and small mistakes (like inconsistent image resizing or channel order) produced results that were confusing until we tracked them down. We also had to balance speed with quality: some features were quick to compute but brittle, while richer features demanded more careful tuning and debugging. It was a good reminder that &ldquo;working&rdquo; code isn&rsquo;t the same as &ldquo;trustworthy&rdquo; code.</p>
+
+<p>On the learning side, we came away with a deeper intuition for how representation choices shape retrieval behavior. We learned to read failure cases as signals about the feature, not just as bad luck from the dataset, and to iterate with curiosity rather than frustration. Building a simple GUI also made the system feel more tangible and helped us test ideas faster. Overall, the biggest takeaway was that CBIR is as much about disciplined engineering and thoughtful evaluation as it is about the underlying math.</p>
+
+<hr />
+
 <h2 id="acknowledgments">5. Acknowledgments</h2>
-<p>Sourav Das, Joseph Defendre. Course materials and OpenCV
-documentation.</p>
+<ul>
+  <li><strong>Claude (Anthropic):</strong> Used as a generative AI assistant for help with code implementation, debugging, and report writing.</li>
+  <li><strong>Streamlit:</strong> <a href="https://docs.streamlit.io/">https://docs.streamlit.io/</a> - Used to build the lightweight GUI for running CBIR queries and visualizing ranked results.</li>
+  <li><strong>OpenCV Documentation:</strong> <a href="https://docs.opencv.org/">https://docs.opencv.org/</a> - Reference for image processing functions, video capture, and Haar cascades.</li>
+  <li><strong>ResNet18 (PyTorch Model Zoo):</strong> <a href="https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html">https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html</a> - Pretrained embeddings referenced for the deep feature baseline and comparison.</li>
+  <li><strong>CS 5330 Course Materials:</strong> Lecture notes and project specifications provided guidance on distance metric implementation.</li>
+</ul>
+
+<hr />
+
+<h2 id="time-travel-days">6. Time Travel Days Used</h2>
+<p><strong>0 days</strong></p>
+
+</body>
+</html>
