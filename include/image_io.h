@@ -16,22 +16,51 @@ Provides an embeddings CSV reader keyed by filename.
 #include <utility>
 #include <vector>
 
-// Returns a sorted list of image file paths under the directory.
+/**
+ * Return a sorted list of image file paths under the directory.
+ *
+ * @param directoryPath Directory to scan for images.
+ * @return Sorted vector of image file paths.
+ */
 std::vector<std::string> listImageFiles(const std::string &directoryPath);
 
-// Loads an image from disk and throws std::runtime_error on failure.
+/**
+ * Load an image from disk and throw on failure.
+ *
+ * @param imagePath Path to the image file.
+ * @return Loaded BGR image (CV_8UC3).
+ * @throws std::runtime_error if the image cannot be loaded.
+ */
 cv::Mat loadImageOrThrow(const std::string &imagePath);
 
-// Writes (filename, feature vector) pairs to a CSV file.
+/**
+ * Write (filename, feature vector) pairs to a CSV file.
+ *
+ * @param outputPath Destination CSV path.
+ * @param features Vector of filename/feature pairs.
+ * @return True on success, false if the file cannot be opened.
+ */
 bool writeFeaturesCsv(
     const std::string &outputPath,
     const std::vector<std::pair<std::string, std::vector<float>>> &features);
 
-// Reads (filename, feature vector) pairs from a CSV file.
+/**
+ * Read (filename, feature vector) pairs from a CSV file.
+ *
+ * @param inputPath Source CSV path.
+ * @return Vector of filename/feature pairs.
+ * @throws std::runtime_error if the file cannot be opened.
+ */
 std::vector<std::pair<std::string, std::vector<float>>> readFeaturesCsv(
     const std::string &inputPath);
 
-// Reads a CSV of embeddings into a map keyed by filename.
+/**
+ * Read an embeddings CSV into a map keyed by filename.
+ *
+ * @param inputPath Source CSV path.
+ * @return Map of filename to embedding vector.
+ * @throws std::runtime_error if the file cannot be opened.
+ */
 std::unordered_map<std::string, std::vector<float>> readEmbeddingsCsv(
     const std::string &inputPath);
 

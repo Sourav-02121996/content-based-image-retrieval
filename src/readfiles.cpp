@@ -15,10 +15,12 @@
 #include <cstdlib>
 #include <dirent.h>
 
-/*
-  Given a directory on the command line, scans through the directory for image files.
-
-  Prints out the full path name for each file. This can be used as an argument to fopen or to cv::imread.
+/**
+ * Scan a directory for image files and print their filenames and full paths.
+ *
+ * @param argc Argument count (expects a directory path).
+ * @param argv Argument vector.
+ * @return 0 on success, non-zero on error.
  */
 int main(int argc, char *argv[]) {
   char dirname[256];

@@ -13,7 +13,14 @@ Implements cosine distance with a zero-norm guard.
 #include <numeric>
 #include <stdexcept>
 
-// Sum of squared differences between matching vector elements.
+/**
+ * Compute sum of squared differences between matching vector elements.
+ *
+ * @param a First feature vector.
+ * @param b Second feature vector.
+ * @return Sum of squared differences.
+ * @throws std::runtime_error if sizes do not match.
+ */
 float ssdDistance(const std::vector<float> &a, const std::vector<float> &b) {
     if (a.size() != b.size()) {
         throw std::runtime_error("SSD distance size mismatch.");
@@ -26,7 +33,14 @@ float ssdDistance(const std::vector<float> &a, const std::vector<float> &b) {
     return sum;
 }
 
-// Histogram intersection similarity in [0, 1] when histograms are normalized.
+/**
+ * Compute histogram intersection similarity in [0, 1] for normalized histograms.
+ *
+ * @param a First normalized histogram.
+ * @param b Second normalized histogram.
+ * @return Intersection similarity.
+ * @throws std::runtime_error if sizes do not match.
+ */
 float histogramIntersectionSimilarity(
     const std::vector<float> &a,
     const std::vector<float> &b) {
@@ -40,7 +54,13 @@ float histogramIntersectionSimilarity(
     return sum;
 }
 
-// Convert similarity to distance (smaller is more similar).
+/**
+ * Convert histogram intersection similarity to distance (smaller is more similar).
+ *
+ * @param a First normalized histogram.
+ * @param b Second normalized histogram.
+ * @return Distance value (1 - similarity).
+ */
 float histogramIntersectionDistance(
     const std::vector<float> &a,
     const std::vector<float> &b) {
@@ -48,7 +68,17 @@ float histogramIntersectionDistance(
     return 1.0f - similarity;
 }
 
-// Compute a weighted average of per-region histogram intersection distances.
+/**
+ * Compute a weighted average of per-region histogram intersection distances.
+ *
+ * @param a Concatenated histograms for image A.
+ * @param b Concatenated histograms for image B.
+ * @param binsPerHistogram Number of bins per region.
+ * @param histogramCount Number of regions.
+ * @param weights Per-region weights (size histogramCount).
+ * @return Weighted intersection distance.
+ * @throws std::runtime_error if sizes or weights do not match expectations.
+ */
 float histogramIntersectionDistanceMulti(
     const std::vector<float> &a,
     const std::vector<float> &b,
@@ -81,7 +111,14 @@ float histogramIntersectionDistanceMulti(
     return total / weightSum;
 }
 
-// Cosine distance (1 - cosine similarity) with zero-norm protection.
+/**
+ * Compute cosine distance (1 - cosine similarity) with zero-norm protection.
+ *
+ * @param a First feature vector.
+ * @param b Second feature vector.
+ * @return Cosine distance (1 - similarity), or 1.0 if either norm is zero.
+ * @throws std::runtime_error if sizes do not match.
+ */
 float cosineDistance(const std::vector<float> &a, const std::vector<float> &b) {
     if (a.size() != b.size()) {
         throw std::runtime_error("Cosine distance size mismatch.");

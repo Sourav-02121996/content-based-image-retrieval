@@ -52,8 +52,20 @@
     object-fit: cover;
     border: 1px solid #ddd;
     border-radius: 4px;
-    vertical-align: middle;
-    margin-right: 8px;
+    flex: 0 0 auto;
+  }
+  .summary-list {
+    list-style: disc;
+    padding-left: 1.5em;
+  }
+  .summary-list li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 0.6em;
+  }
+  .summary-text {
+    flex: 1;
   }
 
   /* Extension screenshots */
@@ -82,7 +94,7 @@
 <body>
 
 <h1>CS 5330 - Pattern Recognition and Computer Vision</h1>
-<h1>Project 2: Content-based Image Retrieval</h1>
+<h2>Project 2: Content-based Image Retrieval</h2>
 
 <p class="meta"><strong>Name:</strong> Joseph Defendre, Sourav Das</p>
 <p class="meta"><strong>Date:</strong> February 2026</p>
@@ -168,12 +180,21 @@ Loaded precomputed ResNet18 embeddings from CSV and used cosine distance to rank
 <p>Comparison vs classic features: DNN matches tend to preserve semantic content and layout even when overall color distributions differ, while classic histograms bias toward color similarity.</p>
 
 <h3 id="task-6">Task 6 &mdash; Classic vs DNN Comparison</h3>
-<p>We ran histogram RG and DNN embeddings on the specified images (1072, 0948, 0734) and summarized how color-biased vs semantic matches differ.</p>
+<p>We ran histogram RG and DNN embeddings on the specified images (pic.1072.jpg, pic.0948.jpg, pic.0734.jpg)  and summarized how color-biased vs semantic matches differ.</p>
 <p><strong>Queries:</strong> pic.1072.jpg, pic.0948.jpg, pic.0734.jpg</p>
-<ul>
-  <li><img class="summary-img" src="data/olympus/pic.1072.jpg" alt="pic.1072.jpg" /><strong>pic.1072.jpg</strong> &mdash; Histogram RG returns color-similar scenes; DNN returns images with similar scene structure even with different palettes.</li>
-  <li><img class="summary-img" src="data/olympus/pic.0948.jpg" alt="pic.0948.jpg" /><strong>pic.0948.jpg</strong> &mdash; Histogram RG emphasizes color tone; DNN yields closer scene/subject context.</li>
-  <li><img class="summary-img" src="data/olympus/pic.0734.jpg" alt="pic.0734.jpg" /><strong>pic.0734.jpg</strong> &mdash; DNN results show near-neighbor scene continuity, while histogram RG mixes in visually similar colors from different contexts.</li>
+<ul class="summary-list">
+  <li>
+    <img class="summary-img" src="data/olympus/pic.1072.jpg" alt="pic.1072.jpg" />
+    <span class="summary-text"><strong>pic.1072.jpg</strong> &mdash; Histogram RG returns color-similar scenes; DNN returns images with similar scene structure even with different palettes.</span>
+  </li>
+  <li>
+    <img class="summary-img" src="data/olympus/pic.0948.jpg" alt="pic.0948.jpg" />
+    <span class="summary-text"><strong>pic.0948.jpg</strong> &mdash; Histogram RG emphasizes color tone; DNN yields closer scene/subject context.</span>
+  </li>
+  <li>
+    <img class="summary-img" src="data/olympus/pic.0734.jpg" alt="pic.0734.jpg" />
+    <span class="summary-text"><strong>pic.0734.jpg</strong> &mdash; DNN results show near-neighbor scene continuity, while histogram RG mixes in visually similar colors from different contexts.</span>
+  </li>
 </ul>
 
 <h3 id="task-7">Task 7 &mdash; Custom Design (Sunset-Oriented Feature)</h3>
@@ -235,6 +256,13 @@ We implemented a sunset-oriented 3-region RGB histogram with higher weight on th
 <hr />
 
 <h2 id="acknowledgments">5. Acknowledgments</h2>
+<ul>
+  <li><strong>Claude (Anthropic):</strong> Used as a generative AI assistant for help with code implementation, debugging, and report writing.</li>
+  <li><strong>Streamlit:</strong> <a href="https://docs.streamlit.io/">https://docs.streamlit.io/</a> - Used to build the lightweight GUI for running CBIR queries and visualizing ranked results.</li>
+  <li><strong>OpenCV Documentation:</strong> <a href="https://docs.opencv.org/">https://docs.opencv.org/</a> - Reference for image processing functions, video capture, and Haar cascades.</li>
+  <li><strong>ResNet18 (PyTorch Model Zoo):</strong> <a href="https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html">https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html</a> - Pretrained embeddings referenced for the deep feature baseline and comparison.</li>
+  <li><strong>CS 5330 Course Materials:</strong> Lecture notes and project specifications provided guidance on distance metric implementation.</li>
+</ul>
 
 <hr />
 
